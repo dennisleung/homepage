@@ -89,8 +89,7 @@ utils = {
                     return Promise.resolve(options);
                 }
 
-                // For now, we can only handle showing the first validation error
-                return errors.logAndRejectError(validationErrors[0]);
+                return errors.logAndRejectError(validationErrors);
             }
 
             // If we got an object, check that too
@@ -111,7 +110,6 @@ utils = {
         var globalValidations = {
                 id: {matches: /^\d+|me$/},
                 uuid: {isUUID: true},
-                slug: {isSlug: true},
                 page: {matches: /^\d+$/},
                 limit: {matches: /^\d+|all$/},
                 fields: {matches: /^[a-z0-9_,]+$/},
@@ -127,8 +125,8 @@ utils = {
                 if (globalValidations[key]) {
                     errors = errors.concat(validation.validate(value, key, globalValidations[key]));
                 } else {
-                    // all other keys should be alpha-numeric with dashes/underscores, like tag, author, status, etc
-                    errors = errors.concat(validation.validate(value, key, globalValidations.slug));
+                    // all other keys should be an alphanumeric string + -, like slug, tag, author, status, etc
+                    errors = errors.concat(validation.validate(value, key, {matches: /^[a-z0-9\-]+$/}));
                 }
             }
         });

@@ -1344,7 +1344,7 @@ input {
   user-select: text;
 }
 
-.error .response {
+.form-group.error .response {
   color: #e25440;
 }
 
@@ -1430,7 +1430,7 @@ select {
 }
 
 .gh-input.error,
-.error .gh-input,
+.form-group.error .gh-input,
 .gh-select.error,
 select.error {
   border-color: #e25440;
@@ -2879,7 +2879,7 @@ table td,
 .splitbtn .dropdown-toggle.btn-sm {
   padding-right: 10px;
   padding-left: 10px;
-  height: 31px;
+  height: 34px;
 }
 
 .splitbtn .dropdown-toggle.btn-lg {
@@ -3938,12 +3938,6 @@ a.badge:focus {
   display: -ms-flexbox;
   display: flex;
   background: #fff;
-}
-
-/*  Flexbox fix. https://github.com/TryGhost/Ghost/issues/5804#issuecomment-141416812 */
-
-.gh-main > section {
-  width: 1px;
 }
 
 /* Global Nav
@@ -5838,6 +5832,7 @@ a.badge:focus {
 
 .post-view-link i {
   font-size: 10px;
+  display: inline-block;
 }
 
 /* Post settings meta
@@ -5917,15 +5912,6 @@ a.badge:focus {
   align-items: center;
   margin-bottom: 10px;
   padding: 0 20px;
-}
-
-.gh-blognav-item--error {
-  margin-bottom: calc(1em + 10px);
-}
-
-.gh-blognav-item .response {
-  position: absolute;
-  margin-bottom: 0;
 }
 
 .gh-blognav-grab {

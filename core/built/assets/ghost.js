@@ -247,7 +247,7 @@ define('ghost/assets/lib/uploader', ['exports', 'ghost/utils/ghost-paths'], func
 
     UploadUi = function ($dropzone, settings) {
         var $url = '<div class="js-url"><input class="url js-upload-url gh-input" type="url" placeholder="http://"/></div>',
-            $cancel = '<a class="image-cancel icon-trash js-cancel" title="Delete"><span class="hidden">Delete</span></a>',
+            $cancel = '<a class="image-cancel icon-trash js-cancel" title="删除"><span class="hidden">删除</span></a>',
             $progress = $('<div />', {
             'class': 'js-upload-progress progress progress-success active',
             role: 'progressbar',
@@ -333,11 +333,11 @@ define('ghost/assets/lib/uploader', ['exports', 'ghost/utils/ghost-paths'], func
                         $dropzone.trigger('uploadfailure', [data.result]);
                         $dropzone.find('.js-upload-progress-bar').addClass('fail');
                         if (data.jqXHR.status === 413) {
-                            $dropzone.find('div.js-fail').text('The image you uploaded was larger than the maximum file size your server allows.');
+                            $dropzone.find('div.js-fail').text('上传的图片超出了服务器端允许的大小。');
                         } else if (data.jqXHR.status === 415) {
-                            $dropzone.find('div.js-fail').text('The image type you uploaded is not supported. Please use .PNG, .JPG, .GIF, .SVG.');
+                            $dropzone.find('div.js-fail').text('上传的图片类型不被支持。请检查是否是 .PNG、.JPG、.GIF、.SVG 格式。');
                         } else {
-                            $dropzone.find('div.js-fail').text('Something went wrong :(');
+                            $dropzone.find('div.js-fail').text('发生故障了 :(');
                         }
                         $dropzone.find('div.js-fail, button.js-fail').fadeIn(1500);
                         $dropzone.find('button.js-fail').on('click', function () {
@@ -356,19 +356,19 @@ define('ghost/assets/lib/uploader', ['exports', 'ghost/utils/ghost-paths'], func
 
             buildExtras: function buildExtras() {
                 if (!$dropzone.find('span.media')[0]) {
-                    $dropzone.prepend('<span class="media"><span class="hidden">Image Upload</span></span>');
+                    $dropzone.prepend('<span class="media"><span class="hidden">上传图片</span></span>');
                 }
                 if (!$dropzone.find('div.description')[0]) {
-                    $dropzone.append('<div class="description">Add image</div>');
+                    $dropzone.append('<div class="description">添加图片</div>');
                 }
                 if (!$dropzone.find('div.js-fail')[0]) {
-                    $dropzone.append('<div class="js-fail failed" style="display: none">Something went wrong :(</div>');
+                    $dropzone.append('<div class="js-fail failed" style="display: none">发生故障了：(</div>');
                 }
                 if (!$dropzone.find('button.js-fail')[0]) {
-                    $dropzone.append('<button class="js-fail btn btn-green" style="display: none">Try Again</button>');
+                    $dropzone.append('<button class="js-fail btn btn-green" style="display: none">重试</button>');
                 }
                 if (!$dropzone.find('a.image-url')[0]) {
-                    $dropzone.append('<a class="image-url" title="Add image from URL"><i class="icon-link"><span class="hidden">URL</span></i></a>');
+                    $dropzone.append('<a class="image-url" title="添加图片地址（URL）"><i class="icon-link"><span class="hidden">URL</span></i></a>');
                 }
                 // if (!$dropzone.find('a.image-webcam')[0]) {
                 //     $dropzone.append('<a class="image-webcam" title="Add image from webcam"><span class="hidden">Webcam</span></a>');
@@ -414,7 +414,7 @@ define('ghost/assets/lib/uploader', ['exports', 'ghost/utils/ghost-paths'], func
                 $dropzone.find('div.description').before($url);
 
                 if (settings.editor) {
-                    $dropzone.find('div.js-url').append('<button class="btn btn-blue js-button-accept gh-input">Save</button>');
+                    $dropzone.find('div.js-url').append('<button class="btn btn-blue js-button-accept gh-input">保存</button>');
                     $dropzone.find('div.description').hide();
                 }
 
@@ -433,7 +433,7 @@ define('ghost/assets/lib/uploader', ['exports', 'ghost/utils/ghost-paths'], func
 
                 // Only show the toggle icon if there is a dropzone mode to go back to
                 if (settings.fileStorage !== false) {
-                    $dropzone.append('<a class="image-upload icon-photos" title="Add image"><span class="hidden">Upload</span></a>');
+                    $dropzone.append('<a class="image-upload icon-photos" title="添加图片"><span class="hidden">上传</span></a>');
                 }
 
                 $dropzone.find('a.image-upload').on('click', function () {
@@ -1039,15 +1039,15 @@ define('ghost/components/gh-editor-save-button', ['exports', 'ember'], function 
         }),
 
         publishText: Ember['default'].computed('isPublished', 'postOrPage', function () {
-            return this.get('isPublished') ? 'Update ' + this.get('postOrPage') : 'Publish Now';
+            return this.get('isPublished') ? '更新' + this.get('postOrPage') : '立即发布';
         }),
 
         draftText: Ember['default'].computed('isPublished', function () {
-            return this.get('isPublished') ? 'Unpublish' : 'Save Draft';
+            return this.get('isPublished') ? '撤销发布' : '保存草稿';
         }),
 
         deleteText: Ember['default'].computed('postOrPage', function () {
-            return 'Delete ' + this.get('postOrPage');
+            return '删除' + this.get('postOrPage');
         }),
 
         saveText: Ember['default'].computed('willPublish', 'publishText', 'draftText', function () {
@@ -1211,12 +1211,32 @@ define('ghost/components/gh-file-upload', ['exports', 'ember'], function (export
     });
 
 });
-define('ghost/components/gh-form-group', ['exports', 'ghost/components/gh-validation-status-container'], function (exports, ValidationStatusContainer) {
+define('ghost/components/gh-form-group', ['exports', 'ember'], function (exports, Ember) {
 
     'use strict';
 
-    exports['default'] = ValidationStatusContainer['default'].extend({
-        classNames: 'form-group'
+    exports['default'] = Ember['default'].Component.extend({
+        classNames: 'form-group',
+        classNameBindings: ['errorClass'],
+
+        errors: null,
+        property: '',
+        hasValidated: Ember['default'].A(),
+
+        errorClass: Ember['default'].computed('errors.[]', 'property', 'hasValidated.[]', function () {
+            var property = this.get('property'),
+                errors = this.get('errors'),
+                hasValidated = this.get('hasValidated');
+
+            // If we haven't yet validated this field, there is no validation class needed
+            if (!hasValidated || !hasValidated.contains(property)) {
+                return '';
+            }
+
+            if (errors) {
+                return errors.get(property) ? 'error' : 'success';
+            }
+        })
     });
 
 });
@@ -1444,8 +1464,6 @@ define('ghost/components/gh-navigation', ['exports', 'ember'], function (exports
                 navElements = '.gh-blognav-item:not(.gh-blognav-item:last-child)',
                 self = this;
 
-            this._super.apply(this, arguments);
-
             navContainer.sortable({
                 handle: '.gh-blognav-grab',
                 items: navElements,
@@ -1465,7 +1483,7 @@ define('ghost/components/gh-navigation', ['exports', 'ember'], function (exports
         },
 
         willDestroyElement: function willDestroyElement() {
-            this.$('.ui-sortable').sortable('destroy');
+            this.$('.js-gh-blognav').sortable('destroy');
         }
     });
 
@@ -1474,9 +1492,7 @@ define('ghost/components/gh-navitem-url-input', ['exports', 'ember'], function (
 
     'use strict';
 
-    var joinUrlParts, isRelative;
-
-    joinUrlParts = function (url, path) {
+    function joinUrlParts(url, path) {
         if (path[0] !== '/' && url.slice(-1) !== '/') {
             path = '/' + path;
         } else if (path[0] === '/' && url.slice(-1) === '/') {
@@ -1484,16 +1500,9 @@ define('ghost/components/gh-navitem-url-input', ['exports', 'ember'], function (
         }
 
         return url + path;
-    };
-
-    isRelative = function (url) {
-        // "protocol://", "//example.com", "scheme:", "#anchor", & invalid paths
-        // should all be treated as absolute
-        return !url.match(/\s/) && !validator.isURL(url) && !url.match(/^(\/\/|#|[a-zA-Z0-9\-]+:)/);
-    };
+    }
 
     exports['default'] = Ember['default'].TextField.extend({
-        classNames: 'gh-input',
         classNameBindings: ['fakePlaceholder'],
 
         didReceiveAttrs: function didReceiveAttrs() {
@@ -1501,7 +1510,8 @@ define('ghost/components/gh-navitem-url-input', ['exports', 'ember'], function (
                 baseUrl = this.get('baseUrl');
 
             // if we have a relative url, create the absolute url to be displayed in the input
-            if (isRelative(url)) {
+            // if (this.get('isRelative')) {
+            if (!validator.isURL(url) && url.indexOf('mailto:') !== 0) {
                 url = joinUrlParts(baseUrl, url);
             }
 
@@ -1514,6 +1524,10 @@ define('ghost/components/gh-navitem-url-input', ['exports', 'ember'], function (
 
         fakePlaceholder: Ember['default'].computed('isBaseUrl', 'hasFocus', function () {
             return this.get('isBaseUrl') && this.get('last') && !this.get('hasFocus');
+        }),
+
+        isRelative: Ember['default'].computed('value', function () {
+            return !validator.isURL(this.get('value')) && this.get('value').indexOf('mailto:') !== 0;
         }),
 
         focusIn: function focusIn(event) {
@@ -1535,11 +1549,6 @@ define('ghost/components/gh-navitem-url-input', ['exports', 'ember'], function (
                 this.set('value', '');
 
                 event.preventDefault();
-            }
-
-            // CMD-S
-            if (event.keyCode === 83 && event.metaKey) {
-                this.notifyUrlChanged();
             }
         },
 
@@ -1563,35 +1572,11 @@ define('ghost/components/gh-navitem-url-input', ['exports', 'ember'], function (
             this.set('value', this.get('value').trim());
 
             var url = this.get('value'),
-                urlParts = document.createElement('a'),
-                baseUrl = this.get('baseUrl'),
-                baseUrlParts = document.createElement('a');
-
-            // leverage the browser's native URI parsing
-            urlParts.href = url;
-            baseUrlParts.href = baseUrl;
-
-            // if we have an email address, add the mailto:
-            if (validator.isEmail(url)) {
-                url = 'mailto:' + url;
-                this.set('value', url);
-            }
+                baseUrl = this.get('baseUrl');
 
             // if we have a relative url, create the absolute url to be displayed in the input
-            if (isRelative(url)) {
-                url = joinUrlParts(baseUrl, url);
-                this.set('value', url);
-            }
-
-            // remove the base url before sending to action
-            if (urlParts.host === baseUrlParts.host && !url.match(/^#/)) {
-                url = url.replace(/^[a-zA-Z0-9\-]+:/, '');
-                url = url.replace(/^\/\//, '');
-                url = url.replace(baseUrlParts.host, '');
-                url = url.replace(baseUrlParts.pathname, '');
-                if (!url.match(/^\//)) {
-                    url = '/' + url;
-                }
+            if (this.get('isRelative')) {
+                this.set('value', joinUrlParts(baseUrl, url));
             }
 
             this.sendAction('change', url);
@@ -1599,23 +1584,15 @@ define('ghost/components/gh-navitem-url-input', ['exports', 'ember'], function (
     });
 
 });
-define('ghost/components/gh-navitem', ['exports', 'ember', 'ghost/mixins/validation-state'], function (exports, Ember, ValidationStateMixin) {
+define('ghost/components/gh-navitem', ['exports', 'ember'], function (exports, Ember) {
 
     'use strict';
 
-    exports['default'] = Ember['default'].Component.extend(ValidationStateMixin['default'], {
+    exports['default'] = Ember['default'].Component.extend({
         classNames: 'gh-blognav-item',
-        classNameBindings: ['errorClass'],
 
         attributeBindings: ['order:data-order'],
         order: Ember['default'].computed.readOnly('navItem.order'),
-        errors: Ember['default'].computed.readOnly('navItem.errors'),
-
-        errorClass: Ember['default'].computed('hasError', function () {
-            if (this.get('hasError')) {
-                return 'gh-blognav-item--error';
-            }
-        }),
 
         keyPress: function keyPress(event) {
             // enter key
@@ -1623,8 +1600,6 @@ define('ghost/components/gh-navitem', ['exports', 'ember', 'ghost/mixins/validat
                 event.preventDefault();
                 this.send('addItem');
             }
-
-            this.get('navItem.errors').clear();
         },
 
         actions: {
@@ -1849,7 +1824,7 @@ define('ghost/components/gh-profile-image', ['exports', 'ember'], function (expo
                 size = this.get('size'),
                 url;
             if (email) {
-                url = 'http://www.gravatar.com/avatar/' + md5(email) + '?s=' + size + '&d=blank';
+                url = 'http://cn.gravatar.com/avatar/' + md5(email) + '?s=' + size + '&d=blank';
                 return ('background-image: url(' + url + ')').htmlSafe();
             }
         }),
@@ -2027,7 +2002,7 @@ define('ghost/components/gh-search-input', ['exports', 'ember', 'ic-ajax'], func
 
             onInit: function onInit() {
                 var selectize = this.get('_selectize'),
-                    html = '<div class="dropdown-empty-message">Nothing found&hellip;</div>';
+                    html = '<div class="dropdown-empty-message">未找到&hellip;</div>';
 
                 selectize.$empty_results_container = $(html);
                 selectize.$empty_results_container.hide();
@@ -2447,11 +2422,11 @@ define('ghost/components/gh-upload-modal', ['exports', 'ember', 'ghost/component
                     return true;
                 },
                 buttonClass: 'btn btn-default',
-                text: 'Cancel' // The reject button text
+                text: '取消' // The reject button text
             },
             accept: {
                 buttonClass: 'btn btn-blue right',
-                text: 'Save', // The accept button text: 'Save'
+                text: '保存', // The accept button texttext: 'Save'
                 func: function func() {
                     var imageType = 'model.' + this.get('imageType'),
                         value;
@@ -2461,7 +2436,7 @@ define('ghost/components/gh-upload-modal', ['exports', 'ember', 'ghost/component
 
                         if (!Ember['default'].isEmpty(value) && !cajaSanitizers['default'].url(value)) {
                             this.setErrorState(true);
-                            return { message: 'Image URI is not valid' };
+                            return { message: '图片的链接地址无效' };
                         }
                     } else {
                         value = this.$('.js-upload-target').attr('src');
@@ -2665,12 +2640,12 @@ define('ghost/components/gh-user-invited', ['exports', 'ember'], function (expor
 
                 this.set('isSending', true);
                 user.resendInvite().then(function (result) {
-                    var notificationText = 'Invitation resent! (' + user.get('email') + ')';
+                    var notificationText = '已发送邀请！ (' + user.get('email') + ')';
 
                     // If sending the invitation email fails, the API will still return a status of 201
                     // but the user's status in the response object will be 'invited-pending'.
                     if (result.users[0].status === 'invited-pending') {
-                        notifications.showAlert('Invitation email was not sent.  Please try resending.', { type: 'error' });
+                        notifications.showAlert('邀请邮件未成功发送。请重新发送。', { type: 'error' });
                     } else {
                         user.set('status', result.users[0].status);
                         notifications.showNotification(notificationText);
@@ -2692,7 +2667,7 @@ define('ghost/components/gh-user-invited', ['exports', 'ember'], function (expor
                 user.reload().then(function () {
                     if (user.get('invited')) {
                         user.destroyRecord().then(function () {
-                            var notificationText = 'Invitation revoked. (' + email + ')';
+                            var notificationText = '邀请已取消。 (' + email + ')';
 
                             notifications.showNotification(notificationText);
                         })['catch'](function (error) {
@@ -2701,24 +2676,11 @@ define('ghost/components/gh-user-invited', ['exports', 'ember'], function (expor
                     } else {
                         // if the user is no longer marked as "invited", then show a warning and reload the route
                         self.sendAction('reload');
-                        notifications.showAlert('This user has already accepted the invitation.', { type: 'error', delayed: true });
+                        notifications.showAlert('此用户已经接受要轻。', { type: 'error', delayed: true });
                     }
                 });
             }
         }
-    });
-
-});
-define('ghost/components/gh-validation-status-container', ['exports', 'ember', 'ghost/mixins/validation-state'], function (exports, Ember, ValidationStateMixin) {
-
-    'use strict';
-
-    exports['default'] = Ember['default'].Component.extend(ValidationStateMixin['default'], {
-        classNameBindings: ['errorClass'],
-
-        errorClass: Ember['default'].computed('hasError', function () {
-            return this.get('hasError') ? 'error' : 'success';
-        })
     });
 
 });
@@ -2806,13 +2768,6 @@ define('ghost/controllers/application', ['exports', 'ember'], function (exports,
     });
 
 });
-define('ghost/controllers/array', ['exports', 'ember'], function (exports, Ember) {
-
-	'use strict';
-
-	exports['default'] = Ember['default'].Controller;
-
-});
 define('ghost/controllers/editor/edit', ['exports', 'ember', 'ghost/mixins/editor-base-controller'], function (exports, Ember, EditorControllerMixin) {
 
     'use strict';
@@ -2861,10 +2816,10 @@ define('ghost/controllers/error', ['exports', 'ember'], function (exports, Ember
         }),
         message: Ember['default'].computed('content.statusText', function () {
             if (this.get('code') === 404) {
-                return 'Page not found';
+                return '未找到此页面';
             }
 
-            return this.get('content.statusText') !== 'error' ? this.get('content.statusText') : 'Internal Server Error';
+            return this.get('content.statusText') !== 'error' ? this.get('content.statusText') : '服务器内部错误';
         }),
         stack: false
     });
@@ -2907,6 +2862,55 @@ define('ghost/controllers/feature', ['exports', 'ember'], function (exports, Emb
     exports['default'] = FeatureController;
 
 });
+define('ghost/controllers/forgotten', ['exports', 'ember', 'ghost/utils/ajax', 'ghost/mixins/validation-engine'], function (exports, Ember, ajax, ValidationEngine) {
+
+    'use strict';
+
+    var ForgottenController = Ember['default'].Controller.extend(ValidationEngine['default'], {
+        email: '',
+        submitting: false,
+
+        // ValidationEngine settings
+        validationType: 'forgotten',
+
+        actions: {
+            submit: function submit() {
+                var data = this.getProperties('email');
+                this.send('doForgotten', data, true);
+            },
+            doForgotten: function doForgotten(data, delay) {
+                var self = this;
+                this.set('email', data.email);
+                this.toggleProperty('submitting');
+                this.validate({ format: false }).then(function () {
+                    ajax['default']({
+                        url: self.get('ghostPaths.url').api('authentication', 'passwordreset'),
+                        type: 'POST',
+                        data: {
+                            passwordreset: [{
+                                email: data.email
+                            }]
+                        }
+                    }).then(function () {
+                        self.toggleProperty('submitting');
+                        self.notifications.showSuccess('请查看邮箱中的邮件。', { delayed: delay });
+                        self.set('email', '');
+                        self.transitionToRoute('signin');
+                    })['catch'](function (resp) {
+                        self.toggleProperty('submitting');
+                        self.notifications.showAPIError(resp, { defaultErrorText: '重置密码出现故障，请重试。' });
+                    });
+                })['catch'](function (errors) {
+                    self.toggleProperty('submitting');
+                    self.notifications.showErrors(errors);
+                });
+            }
+        }
+    });
+
+    exports['default'] = ForgottenController;
+
+});
 define('ghost/controllers/modals/copy-html', ['exports', 'ember'], function (exports, Ember) {
 
     'use strict';
@@ -2931,7 +2935,7 @@ define('ghost/controllers/modals/delete-all', ['exports', 'ember', 'ic-ajax'], f
                 ic_ajax.request(this.get('ghostPaths.url').api('db'), {
                     type: 'DELETE'
                 }).then(function () {
-                    self.get('notifications').showAlert('All content deleted from database.', { type: 'success' });
+                    self.get('notifications').showAlert('所有内容都已经从数据库中删掉了。', { type: 'success' });
                     self.store.unloadAll('post');
                     self.store.unloadAll('tag');
                 })['catch'](function (response) {
@@ -2946,11 +2950,11 @@ define('ghost/controllers/modals/delete-all', ['exports', 'ember', 'ic-ajax'], f
 
         confirm: {
             accept: {
-                text: 'Delete',
+                text: '删除',
                 buttonClass: 'btn btn-red'
             },
             reject: {
-                text: 'Cancel',
+                text: '取消',
                 buttonClass: 'btn btn-default btn-minor'
             }
         }
@@ -2977,7 +2981,7 @@ define('ghost/controllers/modals/delete-post', ['exports', 'ember'], function (e
                     self.get('dropdown').closeDropdowns();
                     self.transitionToRoute('posts.index');
                 }, function () {
-                    self.get('notifications').showAlert('Your post could not be deleted. Please try again.', { type: 'error' });
+                    self.get('notifications').showAlert('删除博文失败，请重试。', { type: 'error' });
                 });
             },
 
@@ -2988,11 +2992,11 @@ define('ghost/controllers/modals/delete-post', ['exports', 'ember'], function (e
 
         confirm: {
             accept: {
-                text: 'Delete',
+                text: '删除',
                 buttonClass: 'btn btn-red'
             },
             reject: {
-                text: 'Cancel',
+                text: '取消',
                 buttonClass: 'btn btn-default btn-minor'
             }
         }
@@ -3029,11 +3033,11 @@ define('ghost/controllers/modals/delete-tag', ['exports', 'ember'], function (ex
 
         confirm: {
             accept: {
-                text: 'Delete',
+                text: '删除',
                 buttonClass: 'btn btn-red'
             },
             reject: {
-                text: 'Cancel',
+                text: '取消',
                 buttonClass: 'btn btn-default btn-minor'
             }
         }
@@ -3076,7 +3080,7 @@ define('ghost/controllers/modals/delete-user', ['exports', 'ember'], function (e
                     self.store.unloadAll('post');
                     self.transitionToRoute('team');
                 }, function () {
-                    self.get('notifications').showAlert('The user could not be deleted. Please try again.', { type: 'error' });
+                    self.get('notifications').showAlert('删除用户失败，请重试。', { type: 'error' });
                 });
             },
 
@@ -3087,11 +3091,11 @@ define('ghost/controllers/modals/delete-user', ['exports', 'ember'], function (e
 
         confirm: {
             accept: {
-                text: 'Delete User',
+                text: '删除用户',
                 buttonClass: 'btn btn-red'
             },
             reject: {
-                text: 'Cancel',
+                text: '取消',
                 buttonClass: 'btn btn-default btn-minor'
             }
         }
@@ -3131,7 +3135,7 @@ define('ghost/controllers/modals/invite-new-user', ['exports', 'ember', 'ghost/m
 
         confirm: {
             accept: {
-                text: 'send invitation now'
+                text: '立即发送邀请'
             },
             reject: {
                 buttonClass: 'hidden'
@@ -3159,9 +3163,9 @@ define('ghost/controllers/modals/invite-new-user', ['exports', 'ember', 'ghost/m
 
                     if (invitedUser) {
                         if (invitedUser.get('status') === 'invited' || invitedUser.get('status') === 'invited-pending') {
-                            self.get('notifications').showAlert('A user with that email address was already invited.', { type: 'warn' });
+                            self.get('notifications').showAlert('已经邀请了此邮箱的持有人。', { type: 'warn' });
                         } else {
-                            self.get('notifications').showAlert('A user with that email address already exists.', { type: 'warn' });
+                            self.get('notifications').showAlert('此邮箱/用户已存在。', { type: 'warn' });
                         }
                     } else {
                         newUser = self.store.createRecord('user', {
@@ -3171,12 +3175,12 @@ define('ghost/controllers/modals/invite-new-user', ['exports', 'ember', 'ghost/m
                         });
 
                         newUser.save().then(function () {
-                            var notificationText = 'Invitation sent! (' + email + ')';
+                            var notificationText = '邀请已发送！ (' + email + ')';
 
                             // If sending the invitation email fails, the API will still return a status of 201
                             // but the user's status in the response object will be 'invited-pending'.
                             if (newUser.get('status') === 'invited-pending') {
-                                self.get('notifications').showAlert('Invitation email was not sent.  Please try resending.', { type: 'error' });
+                                self.get('notifications').showAlert('邀请邮件未能发送！请重新发送。', { type: 'error' });
                             } else {
                                 self.get('notifications').showNotification(notificationText);
                             }
@@ -3228,8 +3232,7 @@ define('ghost/controllers/modals/leave-editor', ['exports', 'ember'], function (
                 }
 
                 if (!transition || !editorController) {
-                    this.get('notifications').showNotification('Sorry, there was an error in the application. Please let the Ghost team know what happened.', { type: 'error' });
-
+                    this.get('notifications').showNotification('抱歉，系统故障。请将此问题提交至 Ghost 开发团队。', { type: 'error' });
                     return true;
                 }
 
@@ -3258,11 +3261,11 @@ define('ghost/controllers/modals/leave-editor', ['exports', 'ember'], function (
 
         confirm: {
             accept: {
-                text: 'Leave',
+                text: '离开此页',
                 buttonClass: 'btn btn-red'
             },
             reject: {
-                text: 'Stay',
+                text: '留在此页',
                 buttonClass: 'btn btn-default btn-minor'
             }
         }
@@ -3365,7 +3368,7 @@ define('ghost/controllers/modals/transfer-owner', ['exports', 'ember', 'ic-ajax'
                         });
                     }
 
-                    self.get('notifications').showAlert('Ownership successfully transferred to ' + user.get('name'), { type: 'success' });
+                    self.get('notifications').showAlert('博客所有权已成功移交给 ' + user.get('name'), { type: 'success' });
                 })['catch'](function (error) {
                     self.get('notifications').showAPIError(error);
                 });
@@ -3378,11 +3381,11 @@ define('ghost/controllers/modals/transfer-owner', ['exports', 'ember', 'ic-ajax'
 
         confirm: {
             accept: {
-                text: 'Yep - I\'m sure',
+                text: '是的 - 我确定',
                 buttonClass: 'btn btn-red'
             },
             reject: {
-                text: 'Cancel',
+                text: '取消',
                 buttonClass: 'btn btn-default btn-minor'
             }
         }
@@ -3414,13 +3417,6 @@ define('ghost/controllers/modals/upload', ['exports', 'ember'], function (export
             }
         }
     });
-
-});
-define('ghost/controllers/object', ['exports', 'ember'], function (exports, Ember) {
-
-	'use strict';
-
-	exports['default'] = Ember['default'].Controller;
 
 });
 define('ghost/controllers/post-settings-menu', ['exports', 'ember', 'ghost/utils/date-formatting', 'ghost/mixins/settings-menu-controller', 'ghost/models/slug-generator', 'ghost/utils/bound-one-way', 'ghost/utils/isNumber'], function (exports, Ember, date_formatting, SettingsMenuMixin, SlugGenerator, boundOneWay, isNumber) {
@@ -3621,10 +3617,6 @@ define('ghost/controllers/post-settings-menu', ['exports', 'ember', 'ghost/utils
         },
 
         actions: {
-            discardEnter: function discardEnter() {
-                return false;
-            },
-
             togglePage: function togglePage() {
                 var self = this;
 
@@ -3745,10 +3737,10 @@ define('ghost/controllers/post-settings-menu', ['exports', 'ember', 'ghost/utils
 
                 // Validate new Published date
                 if (!newPublishedAt.isValid()) {
-                    errMessage = 'Published Date must be a valid date with format: ' + 'DD MMM YY @ HH:mm (e.g. 6 Dec 14 @ 15:00)';
+                    errMessage = '发布日期必须遵循以下日期格式：' + 'YYYY-MM-DD @ HH:mm （例如：2013-09-27 @ 15:00）';
                 }
                 if (newPublishedAt.diff(new Date(), 'h') > 0) {
-                    errMessage = 'Published Date cannot currently be in the future.';
+                    errMessage = '发布日期不能是未来时间。';
                 }
 
                 // If errors, notify and exit.
@@ -4228,7 +4220,7 @@ define('ghost/controllers/settings/labs', ['exports', 'ember', 'ic-ajax'], funct
     'use strict';
 
     exports['default'] = Ember['default'].Controller.extend({
-        uploadButtonText: 'Import',
+        uploadButtonText: '导入',
         importErrors: '',
         submitting: false,
 
@@ -4261,7 +4253,7 @@ define('ghost/controllers/settings/labs', ['exports', 'ember', 'ic-ajax'], funct
                     notifications = this.get('notifications'),
                     currentUserId = this.get('session.user.id');
 
-                this.set('uploadButtonText', 'Importing');
+                this.set('uploadButtonText', '导入中');
                 this.set('importErrors', '');
 
                 formData.append('importfile', file);
@@ -4279,15 +4271,15 @@ define('ghost/controllers/settings/labs', ['exports', 'ember', 'ic-ajax'], funct
                     // Reload currentUser and set session
                     self.set('session.user', self.store.find('user', currentUserId));
                     // TODO: keep as notification, add link to view content
-                    notifications.showNotification('Import successful.');
+                    notifications.showNotification('导入成功。');
                 })['catch'](function (response) {
                     if (response && response.jqXHR && response.jqXHR.responseJSON && response.jqXHR.responseJSON.errors) {
                         self.set('importErrors', response.jqXHR.responseJSON.errors);
                     }
 
-                    notifications.showAlert('Import Failed', { type: 'error' });
+                    notifications.showAlert('导入失败', { type: 'error' });
                 })['finally'](function () {
-                    self.set('uploadButtonText', 'Import');
+                    self.set('uploadButtonText', '导入');
                 });
             },
 
@@ -4311,7 +4303,7 @@ define('ghost/controllers/settings/labs', ['exports', 'ember', 'ic-ajax'], funct
                 ic_ajax.request(this.get('ghostPaths.url').api('mail', 'test'), {
                     type: 'POST'
                 }).then(function () {
-                    notifications.showAlert('Check your email for the test message.', { type: 'info' });
+                    notifications.showAlert('请检查邮箱中是否收到测试邮件。', { type: 'info' });
                     self.toggleProperty('submitting');
                 })['catch'](function (error) {
                     if (typeof error.jqXHR !== 'undefined') {
@@ -4326,26 +4318,18 @@ define('ghost/controllers/settings/labs', ['exports', 'ember', 'ic-ajax'], funct
     });
 
 });
-define('ghost/controllers/settings/navigation', ['exports', 'ember', 'ember-data', 'ghost/mixins/settings-save', 'ghost/mixins/validation-engine'], function (exports, Ember, DS, SettingsSaveMixin, ValidationEngine) {
+define('ghost/controllers/settings/navigation', ['exports', 'ember', 'ghost/mixins/settings-save'], function (exports, Ember, SettingsSaveMixin) {
 
     'use strict';
 
-    var NavItem = Ember['default'].Object.extend(ValidationEngine['default'], {
+    var NavItem = Ember['default'].Object.extend({
         label: '',
         url: '',
         last: false,
 
-        validationType: 'navItem',
-
         isComplete: Ember['default'].computed('label', 'url', function () {
             return !(Ember['default'].isBlank(this.get('label').trim()) || Ember['default'].isBlank(this.get('url')));
-        }),
-
-        init: function init() {
-            this._super.apply(this, arguments);
-            this.set('errors', DS['default'].Errors.create());
-            this.set('hasValidated', Ember['default'].A());
-        }
+        })
     });
 
     exports['default'] = Ember['default'].Controller.extend(SettingsSaveMixin['default'], {
@@ -4393,38 +4377,58 @@ define('ghost/controllers/settings/navigation', ['exports', 'ember', 'ember-data
 
         save: function save() {
             var navSetting,
+                blogUrl = this.get('config').blogUrl,
+                blogUrlRegex = new RegExp('^' + blogUrl + '(.*)', 'i'),
                 navItems = this.get('navigationItems'),
-                notifications = this.get('notifications'),
-                validationPromises,
-                self = this;
+                message = '某个导航条目的标题是空的。' + '<br /> 请为其输入标题或将其删除。',
+                match,
+                notifications = this.get('notifications');
 
-            validationPromises = navItems.map(function (item) {
-                return item.validate();
-            });
+            // Don't save if there's a blank label.
+            if (navItems.find(function (item) {
+                return !item.get('isComplete') && !item.get('last');
+            })) {
+                notifications.showAlert(message.htmlSafe(), { type: 'error' });
+                return;
+            }
 
-            return Ember['default'].RSVP.all(validationPromises).then(function () {
-                navSetting = navItems.map(function (item) {
-                    var label = item.get('label').trim(),
-                        url = item.get('url').trim();
+            navSetting = navItems.map(function (item) {
+                var label, url;
 
-                    if (item.get('last') && !item.get('isComplete')) {
-                        return null;
+                if (!item || !item.get('isComplete')) {
+                    return;
+                }
+
+                label = item.get('label').trim();
+                url = item.get('url').trim();
+
+                // is this an internal URL?
+                match = url.match(blogUrlRegex);
+
+                if (match) {
+                    url = match[1];
+
+                    // if the last char is not a slash, then add one,
+                    // as long as there is no # or . in the URL (anchor or file extension)
+                    // this also handles the empty case for the homepage
+                    if (url[url.length - 1] !== '/' && url.indexOf('#') === -1 && url.indexOf('.') === -1) {
+                        url += '/';
                     }
+                } else if (!validator.isURL(url) && url !== '' && url[0] !== '/' && url.indexOf('mailto:') !== 0) {
+                    url = '/' + url;
+                }
 
-                    return { label: label, url: url };
-                }).compact();
+                return { label: label, url: url };
+            }).compact();
 
-                self.set('model.navigation', JSON.stringify(navSetting));
+            this.set('model.navigation', JSON.stringify(navSetting));
 
-                // trigger change event because even if the final JSON is unchanged
-                // we need to have navigationItems recomputed.
-                self.get('model').notifyPropertyChange('navigation');
+            // trigger change event because even if the final JSON is unchanged
+            // we need to have navigationItems recomputed.
+            this.get('model').notifyPropertyChange('navigation');
 
-                return self.get('model').save()['catch'](function (err) {
-                    notifications.showErrors(err);
-                });
-            })['catch'](function () {
-                // TODO: noop - needed to satisfy spinner button
+            return this.get('model').save()['catch'](function (err) {
+                notifications.showErrors(err);
             });
         },
 
@@ -4461,12 +4465,16 @@ define('ghost/controllers/settings/navigation', ['exports', 'ember', 'ember-data
                     return;
                 }
 
+                if (Ember['default'].isBlank(url)) {
+                    navItem.set('url', this.get('blogUrl'));
+
+                    return;
+                }
+
                 navItem.set('url', url);
             }
         }
     });
-
-    exports.NavItem = NavItem;
 
 });
 define('ghost/controllers/settings/tags', ['exports', 'ember', 'ghost/mixins/pagination-controller', 'ghost/mixins/settings-menu-controller', 'ghost/utils/bound-one-way'], function (exports, Ember, PaginationMixin, SettingsMenuMixin, boundOneWay) {
@@ -4732,7 +4740,7 @@ define('ghost/controllers/setup/three', ['exports', 'ember', 'ember-data'], func
                 // Only one error type here so far, but one day the errors might be more detailed
                 switch (error.error) {
                     case 'email':
-                        errors.add(property, error.user + ' is not a valid email.');
+                        errors.add(property, error.user + ' 不是有效的邮箱地址。');
                 }
             });
 
@@ -4755,13 +4763,13 @@ define('ghost/controllers/setup/three', ['exports', 'ember', 'ember-data'], func
             }
 
             if (validNum > 0) {
-                userCount = validNum === 1 ? 'user' : 'users';
+                userCount = validNum === 1 ? '个小伙伴' : '个小伙伴';
                 userCount = validNum + ' ' + userCount;
             } else {
-                userCount = 'some users';
+                userCount = '小伙伴';
             }
 
-            return 'Invite ' + userCount;
+            return '邀请' + userCount;
         }),
 
         buttonClass: Ember['default'].computed('validationResult', 'usersArray.length', function () {
@@ -4824,16 +4832,16 @@ define('ghost/controllers/setup/three', ['exports', 'ember', 'ember-data'], func
                             });
 
                             if (erroredEmails.length > 0) {
-                                invitationsString = erroredEmails.length > 1 ? ' invitations: ' : ' invitation: ';
-                                message = 'Failed to send ' + erroredEmails.length + invitationsString;
+                                invitationsString = erroredEmails.length > 1 ? ' 个邀请： ' : ' 个邀请： ';
+                                message = '发送失败 ' + erroredEmails.length + invitationsString;
                                 message += erroredEmails.join(', ');
                                 notifications.showAlert(message, { type: 'error', delayed: successCount > 0 });
                             }
 
                             if (successCount > 0) {
                                 // pluralize
-                                invitationsString = successCount > 1 ? 'invitations' : 'invitation';
-                                notifications.showAlert(successCount + ' ' + invitationsString + ' sent!', { type: 'success', delayed: true });
+                                invitationsString = successCount > 1 ? '个邀请' : '个邀请';
+                                notifications.showAlert(successCount + ' ' + invitationsString + '已发送', { type: 'success', delayed: true });
                             }
                             self.send('loadServerNotifications');
                             self.toggleProperty('submitting');
@@ -4841,7 +4849,7 @@ define('ghost/controllers/setup/three', ['exports', 'ember', 'ember-data'], func
                         });
                     });
                 } else if (users.length === 0) {
-                    this.get('errors').add('users', 'No users to invite');
+                    this.get('errors').add('users', '没有可邀请的用户。');
                 }
             },
 
@@ -4968,7 +4976,7 @@ define('ghost/controllers/setup/two', ['exports', 'ember', 'ic-ajax', 'ghost/mix
                     });
                 })['catch'](function () {
                     self.toggleProperty('submitting');
-                    self.set('flowErrors', 'Please fill out the form to setup your blog.');
+                    self.set('flowErrors', '请填写所有信息以完成博客安装。');
                 });
             },
             setImage: function setImage(image) {
@@ -5047,7 +5055,7 @@ define('ghost/controllers/signin', ['exports', 'ember', 'ghost/mixins/validation
                     if (error) {
                         self.get('notifications').showAPIError(error);
                     } else {
-                        self.set('flowErrors', 'Please fill out the form to sign in.');
+                        self.set('flowErrors', '请填写邮箱地址和密码');
                     }
                 });
             },
@@ -5073,7 +5081,7 @@ define('ghost/controllers/signin', ['exports', 'ember', 'ghost/mixins/validation
                         }
                     }).then(function () {
                         self.toggleProperty('submitting');
-                        notifications.showAlert('Please check your email for instructions.', { type: 'info' });
+                        notifications.showAlert('请查看邮件并按照指令继续后续操作。', { type: 'info' });
                     })['catch'](function (resp) {
                         self.toggleProperty('submitting');
                         if (resp && resp.jqXHR && resp.jqXHR.responseJSON && resp.jqXHR.responseJSON.errors) {
@@ -5085,11 +5093,11 @@ define('ghost/controllers/signin', ['exports', 'ember', 'ghost/mixins/validation
                                 self.get('model.errors').add('identification', '');
                             }
                         } else {
-                            notifications.showAPIError(resp, { defaultErrorText: 'There was a problem with the reset, please try again.' });
+                            notifications.showAPIError(resp, { defaultErrorText: '重置失败，请重试。' });
                         }
                     });
                 })['catch'](function () {
-                    self.set('flowErrors', 'Please enter an email address then click "Forgot?".');
+                    self.set('flowErrors', '请输入有效的邮箱地址，然后再点击“忘记密码？”。');
                 });
             }
         }
@@ -5180,7 +5188,7 @@ define('ghost/controllers/signup', ['exports', 'ember', 'ic-ajax', 'ghost/mixins
                         }
                     });
                 })['catch'](function () {
-                    self.set('flowErrors', 'Please fill out the form to complete your sign-up');
+                    self.set('flowErrors', '请填写所有信息以完成注册');
                 });
             },
             setImage: function setImage(image) {
@@ -5231,7 +5239,6 @@ define('ghost/controllers/team/user', ['exports', 'ember', 'ghost/models/slug-ge
         // ValidationEngine settings
         validationType: 'user',
         submitting: false,
-
         ghostPaths: Ember['default'].inject.service('ghost-paths'),
         notifications: Ember['default'].inject.service(),
 
@@ -5292,7 +5299,7 @@ define('ghost/controllers/team/user', ['exports', 'ember', 'ghost/models/slug-ge
         }),
 
         coverTitle: Ember['default'].computed('user.name', function () {
-            return this.get('user.name') + '\'s Cover Image';
+            return this.get('user.name') + ' 的封面图';
         }),
 
         // Lazy load the slug generator for slugPlaceholder
@@ -5371,7 +5378,7 @@ define('ghost/controllers/team/user', ['exports', 'ember', 'ghost/models/slug-ge
                             ne2Password: ''
                         });
 
-                        self.get('notifications').showAlert('Password updated.', { type: 'success' });
+                        self.get('notifications').showAlert('密码已更新。', { type: 'success' });
 
                         return model;
                     })['catch'](function (errors) {
@@ -5519,12 +5526,12 @@ define('ghost/helpers/gh-count-words', ['exports', 'ember', 'ghost/utils/word-co
         markdown = arr[0] || '';
 
         if (/^\s*$/.test(markdown)) {
-            return '0 words';
+            return '0 个字';
         }
 
         count = counter['default'](markdown);
 
-        return count + (count === 1 ? ' word' : ' words');
+        return count + (count === 1 ? ' 个字' : ' 个字');
     });
 
     exports['default'] = countWords;
@@ -5601,7 +5608,10 @@ define('ghost/helpers/gh-format-timeago', ['exports', 'ember'], function (export
 
         var timeago = arr[0];
 
-        return moment(timeago).fromNow();
+        moment.locale('zh-cn');
+        timeago = moment(timeago.toDate()).fromNow();
+
+        return timeago;
         // stefanpenner says cool for small number of timeagos.
         // For large numbers moment sucks => single Ember.Object based clock better
         // https://github.com/manuelmitasch/ghost-admin-ember-demo/commit/fba3ab0a59238290c85d4fa0d7c6ed1be2a8a82e#commitcomment-5396524
@@ -5731,6 +5741,25 @@ define('ghost/helpers/read-path', ['exports', 'ember'], function (exports, Ember
     }
 
     exports['default'] = Ember['default'].HTMLBars.makeBoundHelper(readPath);
+
+});
+define('ghost/initializers/app-version', ['exports', 'ghost/config/environment', 'ember'], function (exports, config, Ember) {
+
+  'use strict';
+
+  var classify = Ember['default'].String.classify;
+  var registered = false;
+
+  exports['default'] = {
+    name: 'App Version',
+    initialize: function initialize(container, application) {
+      if (!registered) {
+        var appName = classify(application.toString());
+        Ember['default'].libraries.register(appName, config['default'].APP.version);
+        registered = true;
+      }
+    }
+  };
 
 });
 define('ghost/initializers/ember-cli-fastclick', ['exports', 'ember'], function (exports, Ember) {
@@ -5900,25 +5929,6 @@ define('ghost/initializers/trailing-history', ['exports', 'ember'], function (ex
     };
 
     exports['default'] = registerTrailingLocationHistory;
-
-});
-define('ghost/instance-initializers/app-version', ['exports', 'ghost/config/environment', 'ember'], function (exports, config, Ember) {
-
-  'use strict';
-
-  var classify = Ember['default'].String.classify;
-  var registered = false;
-
-  exports['default'] = {
-    name: 'App Version',
-    initialize: function initialize(application) {
-      if (!registered) {
-        var appName = classify(application.toString());
-        Ember['default'].libraries.register(appName, config['default'].APP.version);
-        registered = true;
-      }
-    }
-  };
 
 });
 define('ghost/instance-initializers/authentication', ['exports', 'ember'], function (exports, Ember) {
@@ -6533,7 +6543,7 @@ define('ghost/mixins/editor-base-controller', ['exports', 'ember', 'ghost/models
         }),
 
         postOrPage: Ember['default'].computed('model.page', function () {
-            return this.get('model.page') ? 'Page' : 'Post';
+            return this.get('model.page') ? '独立页面' : '博文';
         }),
 
         // compares previousTagNames to tagNames
@@ -6634,7 +6644,7 @@ define('ghost/mixins/editor-base-controller', ['exports', 'ember', 'ghost/models
 
         // used on window.onbeforeunload
         unloadDirtyMessage: function unloadDirtyMessage() {
-            return '==============================\n\n' + 'Hey there! It looks like you\'re in the middle of writing' + ' something and you haven\'t saved all of your content.' + '\n\nSave before you go!\n\n' + '==============================';
+            return '==============================\n\n' + '嘿，老兄！好像你还在编辑博文吧，' + '而且博文内容也还没有保存哦！' + '\n\n建议保存先！\n\n' + '==============================';
         },
 
         // TODO: This has to be moved to the I18n localization file.
@@ -6643,12 +6653,12 @@ define('ghost/mixins/editor-base-controller', ['exports', 'ember', 'ghost/models
             errors: {
                 post: {
                     published: {
-                        published: 'Update failed.',
-                        draft: 'Saving failed.'
+                        published: '更新失败。',
+                        draft: '保存失败。'
                     },
                     draft: {
-                        published: 'Publish failed.',
-                        draft: 'Saving failed.'
+                        published: '发布失败。',
+                        draft: '保存失败。'
                     }
 
                 }
@@ -6657,12 +6667,12 @@ define('ghost/mixins/editor-base-controller', ['exports', 'ember', 'ghost/models
             success: {
                 post: {
                     published: {
-                        published: 'Updated.',
-                        draft: 'Saved.'
+                        published: '已更新。',
+                        draft: '已保存。'
                     },
                     draft: {
-                        published: 'Published!',
-                        draft: 'Saved.'
+                        published: '已发布！',
+                        draft: '已保存。'
                     }
                 }
             }
@@ -6676,7 +6686,7 @@ define('ghost/mixins/editor-base-controller', ['exports', 'ember', 'ghost/models
                 notifications = this.get('notifications');
 
             if (status === 'published') {
-                message += '&nbsp;<a href="' + path + '">View ' + type + '</a>';
+                message += '&nbsp;<a href="' + path + '">查看 ' + type + '</a>';
             }
 
             notifications.showNotification(message.htmlSafe(), { delayed: delay });
@@ -6699,7 +6709,7 @@ define('ghost/mixins/editor-base-controller', ['exports', 'ember', 'ghost/models
             } else if (errors && errors[0] && errors[0].message && isString(errors[0].message)) {
                 error = errors[0].message;
             } else {
-                error = 'Unknown Error';
+                error = '未知错误';
             }
 
             message += '<br />' + error;
@@ -7258,8 +7268,7 @@ define('ghost/mixins/shortcuts-route', ['exports', 'ember'], function (exports, 
             var shortcuts = this.get('shortcuts');
 
             Ember['default'].keys(shortcuts).forEach(function (shortcut) {
-                var scope = shortcuts[shortcut].scope || 'default';
-                key.unbind(shortcut, scope);
+                key.unbind(shortcut);
             });
         },
 
@@ -7341,7 +7350,7 @@ define('ghost/mixins/text-input', ['exports', 'ember'], function (exports, Ember
     exports['default'] = BlurField;
 
 });
-define('ghost/mixins/validation-engine', ['exports', 'ember', 'ember-data', 'ghost/utils/ajax', 'ghost/utils/validator-extensions', 'ghost/validators/post', 'ghost/validators/setup', 'ghost/validators/signup', 'ghost/validators/signin', 'ghost/validators/setting', 'ghost/validators/reset', 'ghost/validators/user', 'ghost/validators/tag-settings', 'ghost/validators/nav-item'], function (exports, Ember, DS, getRequestErrorMessage, ValidatorExtensions, PostValidator, SetupValidator, SignupValidator, SigninValidator, SettingValidator, ResetValidator, UserValidator, TagSettingsValidator, NavItemValidator) {
+define('ghost/mixins/validation-engine', ['exports', 'ember', 'ember-data', 'ghost/utils/ajax', 'ghost/utils/validator-extensions', 'ghost/validators/post', 'ghost/validators/setup', 'ghost/validators/signup', 'ghost/validators/signin', 'ghost/validators/setting', 'ghost/validators/reset', 'ghost/validators/user', 'ghost/validators/tag-settings'], function (exports, Ember, DS, getRequestErrorMessage, ValidatorExtensions, PostValidator, SetupValidator, SignupValidator, SigninValidator, SettingValidator, ResetValidator, UserValidator, TagSettingsValidator) {
 
     'use strict';
 
@@ -7367,8 +7376,7 @@ define('ghost/mixins/validation-engine', ['exports', 'ember', 'ember-data', 'gho
             setting: SettingValidator['default'],
             reset: ResetValidator['default'],
             user: UserValidator['default'],
-            tag: TagSettingsValidator['default'],
-            navItem: NavItemValidator['default']
+            tag: TagSettingsValidator['default']
         },
 
         // This adds the Errors object to the validation engine, and shouldn't affect
@@ -7479,41 +7487,6 @@ define('ghost/mixins/validation-engine', ['exports', 'ember', 'ember-data', 'gho
     });
 
 });
-define('ghost/mixins/validation-state', ['exports', 'ember'], function (exports, Ember) {
-
-    'use strict';
-
-    exports['default'] = Ember['default'].Mixin.create({
-
-        errors: null,
-        property: '',
-        hasValidated: Ember['default'].A(),
-
-        hasError: Ember['default'].computed('errors.[]', 'property', 'hasValidated.[]', function () {
-            var property = this.get('property'),
-                errors = this.get('errors'),
-                hasValidated = this.get('hasValidated');
-
-            // if we aren't looking at a specific property we always want an error class
-            if (!property && !Ember['default'].isEmpty(errors)) {
-                return true;
-            }
-
-            // If we haven't yet validated this field, there is no validation class needed
-            if (!hasValidated || !hasValidated.contains(property)) {
-                return false;
-            }
-
-            if (errors) {
-                return errors.get(property);
-            }
-
-            return false;
-        })
-
-    });
-
-});
 define('ghost/models/notification', ['exports', 'ember-data'], function (exports, DS) {
 
     'use strict';
@@ -7544,7 +7517,7 @@ define('ghost/models/post', ['exports', 'ember', 'ember-data', 'ghost/mixins/val
         featured: DS['default'].attr('boolean', { defaultValue: false }),
         page: DS['default'].attr('boolean', { defaultValue: false }),
         status: DS['default'].attr('string', { defaultValue: 'draft' }),
-        language: DS['default'].attr('string', { defaultValue: 'en_US' }),
+        language: DS['default'].attr('string', { defaultValue: 'zh_CN' }),
         meta_title: DS['default'].attr('string'),
         meta_description: DS['default'].attr('string'),
         author: DS['default'].belongsTo('user', { async: true }),
@@ -7735,7 +7708,7 @@ define('ghost/models/user', ['exports', 'ember', 'ember-data', 'ic-ajax', 'ghost
         location: DS['default'].attr('string'),
         accessibility: DS['default'].attr('string'),
         status: DS['default'].attr('string'),
-        language: DS['default'].attr('string', { defaultValue: 'en_US' }),
+        language: DS['default'].attr('string', { defaultValue: 'zh_CN' }),
         meta_title: DS['default'].attr('string'),
         meta_description: DS['default'].attr('string'),
         last_login: DS['default'].attr('moment-date'),
@@ -7801,11 +7774,11 @@ define('ghost/models/user', ['exports', 'ember', 'ember-data', 'ic-ajax', 'ghost
             var validationErrors = [];
 
             if (!validator.equals(this.get('newPassword'), this.get('ne2Password'))) {
-                validationErrors.push({ message: 'Your new passwords do not match' });
+                validationErrors.push({ message: '两次输入的新密码不匹配。' });
             }
 
             if (!validator.isLength(this.get('newPassword'), 8)) {
-                validationErrors.push({ message: 'Your password is not long enough. It must be at least 8 characters long.' });
+                validationErrors.push({ message: '密码太短。至少输入8个字符。' });
             }
 
             return validationErrors;
@@ -7885,7 +7858,7 @@ define('ghost/routes/about', ['exports', 'ember', 'ic-ajax', 'ghost/routes/authe
     'use strict';
 
     exports['default'] = AuthenticatedRoute['default'].extend(styleBody['default'], {
-        titleToken: 'About',
+        titleToken: '关于我们',
 
         classNames: ['view-about'],
 
@@ -8089,7 +8062,7 @@ define('ghost/routes/editor/edit', ['exports', 'ghost/routes/authenticated', 'gh
     'use strict';
 
     var EditorEditRoute = AuthenticatedRoute['default'].extend(base['default'], {
-        titleToken: 'Editor',
+        titleToken: '编辑器',
 
         beforeModel: function beforeModel(transition) {
             this.set('_transitionedFromNew', transition.data.fromNew);
@@ -8169,7 +8142,7 @@ define('ghost/routes/editor/new', ['exports', 'ghost/routes/authenticated', 'gho
     'use strict';
 
     exports['default'] = AuthenticatedRoute['default'].extend(base['default'], {
-        titleToken: 'Editor',
+        titleToken: '编辑器',
 
         model: function model() {
             var self = this;
@@ -8238,6 +8211,19 @@ define('ghost/routes/error404', ['exports', 'ember'], function (exports, Ember) 
     exports['default'] = Error404Route;
 
 });
+define('ghost/routes/forgotten', ['exports', 'ember', 'ghost/mixins/style-body', 'ghost/mixins/loading-indicator'], function (exports, Ember, styleBody, loadingIndicator) {
+
+    'use strict';
+
+    var ForgottenRoute = Ember['default'].Route.extend(styleBody['default'], loadingIndicator['default'], {
+        titleToken: '找回密码',
+
+        classNames: ['ghost-forgotten']
+    });
+
+    exports['default'] = ForgottenRoute;
+
+});
 define('ghost/routes/mobile-index-route', ['exports', 'ember', 'ghost/utils/mobile'], function (exports, Ember, mobileQuery) {
 
     'use strict';
@@ -8279,7 +8265,7 @@ define('ghost/routes/posts', ['exports', 'ember', 'ghost/routes/authenticated', 
     };
 
     exports['default'] = AuthenticatedRoute['default'].extend(ShortcutsRoute['default'], PaginationRouteMixin['default'], {
-        titleToken: 'Content',
+        titleToken: '博文列表',
 
         model: function model() {
             var self = this;
@@ -8537,7 +8523,7 @@ define('ghost/routes/settings/code-injection', ['exports', 'ghost/routes/authent
     'use strict';
 
     exports['default'] = AuthenticatedRoute['default'].extend(styleBody['default'], CurrentUserSettings['default'], {
-        titleToken: 'Settings - Code Injection',
+        titleToken: '设置 - 插入代码',
         classNames: ['settings-view-code'],
 
         beforeModel: function beforeModel(transition) {
@@ -8564,7 +8550,7 @@ define('ghost/routes/settings/general', ['exports', 'ghost/routes/authenticated'
     'use strict';
 
     exports['default'] = AuthenticatedRoute['default'].extend(styleBody['default'], CurrentUserSettings['default'], {
-        titleToken: 'Settings - General',
+        titleToken: '设置 - 全局设置',
 
         classNames: ['settings-view-general'],
 
@@ -8592,7 +8578,7 @@ define('ghost/routes/settings/labs', ['exports', 'ghost/routes/authenticated', '
     'use strict';
 
     exports['default'] = AuthenticatedRoute['default'].extend(styleBody['default'], CurrentUserSettings['default'], {
-        titleToken: 'Settings - Labs',
+        titleToken: '设置 - 实验功能',
 
         classNames: ['settings'],
 
@@ -8614,7 +8600,7 @@ define('ghost/routes/settings/navigation', ['exports', 'ghost/routes/authenticat
     'use strict';
 
     var NavigationRoute = AuthenticatedRoute['default'].extend(styleBody['default'], CurrentUserSettings['default'], {
-        titleToken: 'Settings - Navigation',
+        titleToken: '设置 - 导航菜单',
 
         classNames: ['settings-view-navigation'],
 
@@ -8656,7 +8642,7 @@ define('ghost/routes/settings/tags', ['exports', 'ghost/routes/authenticated', '
     };
 
     TagsRoute = AuthenticatedRoute['default'].extend(CurrentUserSettings['default'], PaginationRouteMixin['default'], {
-        titleToken: 'Settings - Tags',
+        titleToken: '设置 - 标签管理',
 
         beforeModel: function beforeModel(transition) {
             this._super(transition);
@@ -8697,7 +8683,7 @@ define('ghost/routes/setup', ['exports', 'ember', 'ic-ajax', 'simple-auth/config
     'use strict';
 
     exports['default'] = Ember['default'].Route.extend(styleBody['default'], {
-        titleToken: 'Setup',
+        titleToken: '安装',
 
         classNames: ['ghost-setup'],
 
@@ -8823,7 +8809,7 @@ define('ghost/routes/signin', ['exports', 'ember', 'simple-auth/configuration', 
     'use strict';
 
     var SigninRoute = Ember['default'].Route.extend(styleBody['default'], {
-        titleToken: 'Sign In',
+        titleToken: '登录',
 
         classNames: ['ghost-login'],
 
@@ -8861,7 +8847,7 @@ define('ghost/routes/signout', ['exports', 'ember', 'ghost/routes/authenticated'
     'use strict';
 
     exports['default'] = AuthenticatedRoute['default'].extend(styleBody['default'], {
-        titleToken: 'Sign Out',
+        titleToken: '退出',
 
         classNames: ['ghost-signout'],
 
@@ -8891,7 +8877,7 @@ define('ghost/routes/signup', ['exports', 'ember', 'ember-data', 'ic-ajax', 'sim
 
         beforeModel: function beforeModel() {
             if (this.get('session').isAuthenticated) {
-                this.get('notifications').showAlert('You need to sign out to register as a new user.', { type: 'warn', delayed: true });
+                this.get('notifications').showAlert('请先退出登录，然后再注册新用户。', { type: 'warn', delayed: true });
                 this.transitionTo(Configuration['default'].routeAfterAuthentication);
             }
         },
@@ -8926,7 +8912,7 @@ define('ghost/routes/signup', ['exports', 'ember', 'ember-data', 'ic-ajax', 'sim
                     }
                 }).then(function (response) {
                     if (response && response.invitation && response.invitation[0].valid === false) {
-                        self.get('notifications').showAlert('The invitation does not exist or is no longer valid.', { type: 'warn', delayed: true });
+                        self.get('notifications').showAlert('邀请不存在或已经失效。', { type: 'warn', delayed: true });
 
                         return resolve(self.transitionTo('signin'));
                     }
@@ -8960,7 +8946,7 @@ define('ghost/routes/team/index', ['exports', 'ghost/routes/authenticated', 'gho
     };
 
     exports['default'] = AuthenticatedRoute['default'].extend(styleBody['default'], CurrentUserSettings['default'], PaginationRouteMixin['default'], {
-        titleToken: 'Team',
+        titleToken: '用户列表',
 
         classNames: ['view-team'],
 
@@ -8996,7 +8982,7 @@ define('ghost/routes/team/user', ['exports', 'ghost/routes/authenticated', 'ghos
     'use strict';
 
     var TeamUserRoute = AuthenticatedRoute['default'].extend(styleBody['default'], CurrentUserSettings['default'], {
-        titleToken: 'Team - User',
+        titleToken: '用户列表 - 用户管理',
 
         classNames: ['team-view-user'],
 
@@ -9235,7 +9221,7 @@ define('ghost/services/config', ['exports', 'ember'], function (exports, Ember) 
     'use strict';
 
     function isNumeric(num) {
-        return Ember['default'].$.isNumeric(num);
+        return !isNaN(num);
     }
 
     function _mapType(val) {
@@ -9508,12 +9494,12 @@ define('ghost/templates/-contributors', ['exports'], function (exports) {
         var el2 = dom.createTextNode("\n    ");
         dom.appendChild(el1, el2);
         var el2 = dom.createElement("a");
-        dom.setAttribute(el2,"href","https://github.com/cobbspur");
-        dom.setAttribute(el2,"title","cobbspur");
+        dom.setAttribute(el2,"href","https://github.com/JohnONolan");
+        dom.setAttribute(el2,"title","JohnONolan");
         var el3 = dom.createTextNode("\n        ");
         dom.appendChild(el2, el3);
         var el3 = dom.createElement("img");
-        dom.setAttribute(el3,"alt","cobbspur");
+        dom.setAttribute(el3,"alt","JohnONolan");
         dom.appendChild(el2, el3);
         var el3 = dom.createTextNode("\n    ");
         dom.appendChild(el2, el3);
@@ -9527,12 +9513,12 @@ define('ghost/templates/-contributors', ['exports'], function (exports) {
         var el2 = dom.createTextNode("\n    ");
         dom.appendChild(el1, el2);
         var el2 = dom.createElement("a");
-        dom.setAttribute(el2,"href","https://github.com/JohnONolan");
-        dom.setAttribute(el2,"title","JohnONolan");
+        dom.setAttribute(el2,"href","https://github.com/cobbspur");
+        dom.setAttribute(el2,"title","cobbspur");
         var el3 = dom.createTextNode("\n        ");
         dom.appendChild(el2, el3);
         var el3 = dom.createElement("img");
-        dom.setAttribute(el3,"alt","JohnONolan");
+        dom.setAttribute(el3,"alt","cobbspur");
         dom.appendChild(el2, el3);
         var el3 = dom.createTextNode("\n    ");
         dom.appendChild(el2, el3);
@@ -9584,25 +9570,6 @@ define('ghost/templates/-contributors', ['exports'], function (exports) {
         var el2 = dom.createTextNode("\n    ");
         dom.appendChild(el1, el2);
         var el2 = dom.createElement("a");
-        dom.setAttribute(el2,"href","https://github.com/sebgie");
-        dom.setAttribute(el2,"title","sebgie");
-        var el3 = dom.createTextNode("\n        ");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createElement("img");
-        dom.setAttribute(el3,"alt","sebgie");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createTextNode("\n    ");
-        dom.appendChild(el2, el3);
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n");
-        dom.appendChild(el1, el2);
-        dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n");
-        dom.appendChild(el0, el1);
-        var el1 = dom.createElement("article");
-        var el2 = dom.createTextNode("\n    ");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createElement("a");
         dom.setAttribute(el2,"href","https://github.com/jaswilli");
         dom.setAttribute(el2,"title","jaswilli");
         var el3 = dom.createTextNode("\n        ");
@@ -9622,12 +9589,69 @@ define('ghost/templates/-contributors', ['exports'], function (exports) {
         var el2 = dom.createTextNode("\n    ");
         dom.appendChild(el1, el2);
         var el2 = dom.createElement("a");
+        dom.setAttribute(el2,"href","https://github.com/sebgie");
+        dom.setAttribute(el2,"title","sebgie");
+        var el3 = dom.createTextNode("\n        ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("img");
+        dom.setAttribute(el3,"alt","sebgie");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createElement("article");
+        var el2 = dom.createTextNode("\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("a");
         dom.setAttribute(el2,"href","https://github.com/jomahoney");
         dom.setAttribute(el2,"title","jomahoney");
         var el3 = dom.createTextNode("\n        ");
         dom.appendChild(el2, el3);
         var el3 = dom.createElement("img");
         dom.setAttribute(el3,"alt","jomahoney");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createElement("article");
+        var el2 = dom.createTextNode("\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("a");
+        dom.setAttribute(el2,"href","https://github.com/novaugust");
+        dom.setAttribute(el2,"title","novaugust");
+        var el3 = dom.createTextNode("\n        ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("img");
+        dom.setAttribute(el3,"alt","novaugust");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createElement("article");
+        var el2 = dom.createTextNode("\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("a");
+        dom.setAttribute(el2,"href","https://github.com/kowsheek");
+        dom.setAttribute(el2,"title","kowsheek");
+        var el3 = dom.createTextNode("\n        ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("img");
+        dom.setAttribute(el3,"alt","kowsheek");
         dom.appendChild(el2, el3);
         var el3 = dom.createTextNode("\n    ");
         dom.appendChild(el2, el3);
@@ -9679,6 +9703,25 @@ define('ghost/templates/-contributors', ['exports'], function (exports) {
         var el2 = dom.createTextNode("\n    ");
         dom.appendChild(el1, el2);
         var el2 = dom.createElement("a");
+        dom.setAttribute(el2,"href","https://github.com/hex337");
+        dom.setAttribute(el2,"title","hex337");
+        var el3 = dom.createTextNode("\n        ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("img");
+        dom.setAttribute(el3,"alt","hex337");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createElement("article");
+        var el2 = dom.createTextNode("\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("a");
         dom.setAttribute(el2,"href","https://github.com/lukaszklis");
         dom.setAttribute(el2,"title","lukaszklis");
         var el3 = dom.createTextNode("\n        ");
@@ -9698,12 +9741,12 @@ define('ghost/templates/-contributors', ['exports'], function (exports) {
         var el2 = dom.createTextNode("\n    ");
         dom.appendChild(el1, el2);
         var el2 = dom.createElement("a");
-        dom.setAttribute(el2,"href","https://github.com/Gargol");
-        dom.setAttribute(el2,"title","Gargol");
+        dom.setAttribute(el2,"href","https://github.com/josephwegner");
+        dom.setAttribute(el2,"title","josephwegner");
         var el3 = dom.createTextNode("\n        ");
         dom.appendChild(el2, el3);
         var el3 = dom.createElement("img");
-        dom.setAttribute(el3,"alt","Gargol");
+        dom.setAttribute(el3,"alt","josephwegner");
         dom.appendChild(el2, el3);
         var el3 = dom.createTextNode("\n    ");
         dom.appendChild(el2, el3);
@@ -9717,12 +9760,12 @@ define('ghost/templates/-contributors', ['exports'], function (exports) {
         var el2 = dom.createTextNode("\n    ");
         dom.appendChild(el1, el2);
         var el2 = dom.createElement("a");
-        dom.setAttribute(el2,"href","https://github.com/hoxoa");
-        dom.setAttribute(el2,"title","hoxoa");
+        dom.setAttribute(el2,"href","https://github.com/augbog");
+        dom.setAttribute(el2,"title","augbog");
         var el3 = dom.createTextNode("\n        ");
         dom.appendChild(el2, el3);
         var el3 = dom.createElement("img");
-        dom.setAttribute(el3,"alt","hoxoa");
+        dom.setAttribute(el3,"alt","augbog");
         dom.appendChild(el2, el3);
         var el3 = dom.createTextNode("\n    ");
         dom.appendChild(el2, el3);
@@ -9736,69 +9779,12 @@ define('ghost/templates/-contributors', ['exports'], function (exports) {
         var el2 = dom.createTextNode("\n    ");
         dom.appendChild(el1, el2);
         var el2 = dom.createElement("a");
-        dom.setAttribute(el2,"href","https://github.com/kowsheek");
-        dom.setAttribute(el2,"title","kowsheek");
+        dom.setAttribute(el2,"href","https://github.com/Rovak");
+        dom.setAttribute(el2,"title","Rovak");
         var el3 = dom.createTextNode("\n        ");
         dom.appendChild(el2, el3);
         var el3 = dom.createElement("img");
-        dom.setAttribute(el3,"alt","kowsheek");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createTextNode("\n    ");
-        dom.appendChild(el2, el3);
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n");
-        dom.appendChild(el1, el2);
-        dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n");
-        dom.appendChild(el0, el1);
-        var el1 = dom.createElement("article");
-        var el2 = dom.createTextNode("\n    ");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createElement("a");
-        dom.setAttribute(el2,"href","https://github.com/auermi");
-        dom.setAttribute(el2,"title","auermi");
-        var el3 = dom.createTextNode("\n        ");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createElement("img");
-        dom.setAttribute(el3,"alt","auermi");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createTextNode("\n    ");
-        dom.appendChild(el2, el3);
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n");
-        dom.appendChild(el1, el2);
-        dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n");
-        dom.appendChild(el0, el1);
-        var el1 = dom.createElement("article");
-        var el2 = dom.createTextNode("\n    ");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createElement("a");
-        dom.setAttribute(el2,"href","https://github.com/BlueHatbRit");
-        dom.setAttribute(el2,"title","BlueHatbRit");
-        var el3 = dom.createTextNode("\n        ");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createElement("img");
-        dom.setAttribute(el3,"alt","BlueHatbRit");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createTextNode("\n    ");
-        dom.appendChild(el2, el3);
-        dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n");
-        dom.appendChild(el1, el2);
-        dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n");
-        dom.appendChild(el0, el1);
-        var el1 = dom.createElement("article");
-        var el2 = dom.createTextNode("\n    ");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createElement("a");
-        dom.setAttribute(el2,"href","https://github.com/joecannatti");
-        dom.setAttribute(el2,"title","joecannatti");
-        var el3 = dom.createTextNode("\n        ");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createElement("img");
-        dom.setAttribute(el3,"alt","joecannatti");
+        dom.setAttribute(el3,"alt","Rovak");
         dom.appendChild(el2, el3);
         var el3 = dom.createTextNode("\n    ");
         dom.appendChild(el2, el3);
@@ -9851,22 +9837,22 @@ define('ghost/templates/-contributors', ['exports'], function (exports) {
       statements: [
         ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/ErisDS"]]],
         ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/kevinansfield"]]],
-        ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/cobbspur"]]],
         ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/JohnONolan"]]],
+        ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/cobbspur"]]],
         ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/acburdine"]]],
         ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/halfdan"]]],
-        ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/sebgie"]]],
         ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/jaswilli"]]],
+        ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/sebgie"]]],
         ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/jomahoney"]]],
+        ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/novaugust"]]],
+        ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/kowsheek"]]],
         ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/Remchi"]]],
         ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/rwjblue"]]],
+        ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/hex337"]]],
         ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/lukaszklis"]]],
-        ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/Gargol"]]],
-        ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/hoxoa"]]],
-        ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/kowsheek"]]],
-        ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/auermi"]]],
-        ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/BlueHatbRit"]]],
-        ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/joecannatti"]]]
+        ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/josephwegner"]]],
+        ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/augbog"]]],
+        ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/contributors"],[]],"/Rovak"]]]
       ],
       locals: [],
       templates: []
@@ -10011,6 +9997,746 @@ define('ghost/templates/-import-errors', ['exports'], function (exports) {
   }()));
 
 });
+define('ghost/templates/-navbar', ['exports'], function (exports) {
+
+  'use strict';
+
+  exports['default'] = Ember.HTMLBars.template((function() {
+    var child0 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@1.13.2",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 7,
+              "column": 4
+            },
+            "end": {
+              "line": 9,
+              "column": 4
+            }
+          },
+          "moduleName": "ghost/templates/-navbar.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("        ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("div");
+          dom.setAttribute(el1,"class","nav-label");
+          var el2 = dom.createElement("i");
+          dom.setAttribute(el2,"class","icon-content");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode(" 博文列表");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes() { return []; },
+        statements: [
+
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    var child1 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@1.13.2",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 11,
+              "column": 4
+            },
+            "end": {
+              "line": 13,
+              "column": 4
+            }
+          },
+          "moduleName": "ghost/templates/-navbar.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("        ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("div");
+          dom.setAttribute(el1,"class","nav-label");
+          var el2 = dom.createElement("i");
+          dom.setAttribute(el2,"class","icon-add");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode(" 新建博文");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes() { return []; },
+        statements: [
+
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    var child2 = (function() {
+      var child0 = (function() {
+        return {
+          meta: {
+            "revision": "Ember@1.13.2",
+            "loc": {
+              "source": null,
+              "start": {
+                "line": 16,
+                "column": 4
+              },
+              "end": {
+                "line": 18,
+                "column": 4
+              }
+            },
+            "moduleName": "ghost/templates/-navbar.hbs"
+          },
+          arity: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          buildFragment: function buildFragment(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("        ");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createElement("div");
+            dom.setAttribute(el1,"class","nav-label");
+            var el2 = dom.createElement("i");
+            dom.setAttribute(el2,"class","icon-settings2");
+            dom.appendChild(el1, el2);
+            var el2 = dom.createTextNode(" 博客设置");
+            dom.appendChild(el1, el2);
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("\n");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          buildRenderNodes: function buildRenderNodes() { return []; },
+          statements: [
+
+          ],
+          locals: [],
+          templates: []
+        };
+      }());
+      return {
+        meta: {
+          "revision": "Ember@1.13.2",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 15,
+              "column": 4
+            },
+            "end": {
+              "line": 19,
+              "column": 4
+            }
+          },
+          "moduleName": "ghost/templates/-navbar.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createComment("");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
+          dom.insertBoundary(fragment, 0);
+          dom.insertBoundary(fragment, null);
+          return morphs;
+        },
+        statements: [
+          ["block","link-to",["settings"],["classNames","nav-item nav-settings js-nav-item"],0,null]
+        ],
+        locals: [],
+        templates: [child0]
+      };
+    }());
+    var child3 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@1.13.2",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 33,
+              "column": 8
+            },
+            "end": {
+              "line": 41,
+              "column": 8
+            }
+          },
+          "moduleName": "ghost/templates/-navbar.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("            ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("span");
+          dom.setAttribute(el1,"class","image");
+          var el2 = dom.createTextNode("\n                ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("img");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n            ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n            ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("div");
+          dom.setAttribute(el1,"class","name");
+          var el2 = dom.createTextNode("\n                ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createComment("");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode(" ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("i");
+          dom.setAttribute(el2,"class","icon-chevron-down");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n                ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("small");
+          var el3 = dom.createTextNode("个人资料与设置");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n            ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var element2 = dom.childAt(fragment, [1]);
+          var element3 = dom.childAt(element2, [1]);
+          var morphs = new Array(4);
+          morphs[0] = dom.createAttrMorph(element2, 'style');
+          morphs[1] = dom.createAttrMorph(element3, 'src');
+          morphs[2] = dom.createAttrMorph(element3, 'title');
+          morphs[3] = dom.createMorphAt(dom.childAt(fragment, [3]),1,1);
+          return morphs;
+        },
+        statements: [
+          ["attribute","style",["get","userImageBackground"]],
+          ["attribute","src",["get","userImage"]],
+          ["attribute","title",["get","userImageAlt"]],
+          ["content","session.user.name"]
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    var child4 = (function() {
+      var child0 = (function() {
+        return {
+          meta: {
+            "revision": "Ember@1.13.2",
+            "loc": {
+              "source": null,
+              "start": {
+                "line": 44,
+                "column": 40
+              },
+              "end": {
+                "line": 44,
+                "column": 209
+              }
+            },
+            "moduleName": "ghost/templates/-navbar.hbs"
+          },
+          arity: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          buildFragment: function buildFragment(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createElement("i");
+            dom.setAttribute(el1,"class","icon-user");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode(" 我的资料");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          buildRenderNodes: function buildRenderNodes() { return []; },
+          statements: [
+
+          ],
+          locals: [],
+          templates: []
+        };
+      }());
+      var child1 = (function() {
+        return {
+          meta: {
+            "revision": "Ember@1.13.2",
+            "loc": {
+              "source": null,
+              "start": {
+                "line": 46,
+                "column": 40
+              },
+              "end": {
+                "line": 46,
+                "column": 168
+              }
+            },
+            "moduleName": "ghost/templates/-navbar.hbs"
+          },
+          arity: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          buildFragment: function buildFragment(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createElement("i");
+            dom.setAttribute(el1,"class","icon-power");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode(" 退出登录");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          buildRenderNodes: function buildRenderNodes() { return []; },
+          statements: [
+
+          ],
+          locals: [],
+          templates: []
+        };
+      }());
+      return {
+        meta: {
+          "revision": "Ember@1.13.2",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 42,
+              "column": 8
+            },
+            "end": {
+              "line": 48,
+              "column": 8
+            }
+          },
+          "moduleName": "ghost/templates/-navbar.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("            ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("ul");
+          dom.setAttribute(el1,"class","dropdown-menu dropdown-triangle-top-right js-user-menu-dropdown-menu");
+          dom.setAttribute(el1,"role","menu");
+          var el2 = dom.createTextNode("\n                ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("li");
+          dom.setAttribute(el2,"role","presentation");
+          var el3 = dom.createComment("");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n                ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("li");
+          dom.setAttribute(el2,"class","divider");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n                ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("li");
+          dom.setAttribute(el2,"role","presentation");
+          var el3 = dom.createComment("");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n            ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var element1 = dom.childAt(fragment, [1]);
+          var morphs = new Array(2);
+          morphs[0] = dom.createMorphAt(dom.childAt(element1, [1]),0,0);
+          morphs[1] = dom.createMorphAt(dom.childAt(element1, [5]),0,0);
+          return morphs;
+        },
+        statements: [
+          ["block","link-to",["settings.users.user",["get","session.user.slug"]],["classNames","dropdown-item user-menu-profile js-nav-item","role","menuitem","tabindex","-1"],0,null],
+          ["block","link-to",["signout"],["classNames","dropdown-item user-menu-signout","role","menuitem","tabindex","-1"],1,null]
+        ],
+        locals: [],
+        templates: [child0, child1]
+      };
+    }());
+    var child5 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@1.13.2",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 52,
+              "column": 8
+            },
+            "end": {
+              "line": 56,
+              "column": 8
+            }
+          },
+          "moduleName": "ghost/templates/-navbar.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("            ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("div");
+          dom.setAttribute(el1,"class","help-button");
+          var el2 = dom.createTextNode("\n                ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("i");
+          dom.setAttribute(el2,"class","icon-question");
+          var el3 = dom.createElement("span");
+          dom.setAttribute(el3,"class","hidden");
+          var el4 = dom.createTextNode("帮助");
+          dom.appendChild(el3, el4);
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n            ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes() { return []; },
+        statements: [
+
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    var child6 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@1.13.2",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 57,
+              "column": 8
+            },
+            "end": {
+              "line": 69,
+              "column": 8
+            }
+          },
+          "moduleName": "ghost/templates/-navbar.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("            ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("ul");
+          dom.setAttribute(el1,"class","dropdown-menu dropdown-triangle-top");
+          dom.setAttribute(el1,"role","menu");
+          var el2 = dom.createTextNode("\n                ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("li");
+          dom.setAttribute(el2,"role","presentation");
+          var el3 = dom.createElement("a");
+          dom.setAttribute(el3,"class","dropdown-item help-menu-support");
+          dom.setAttribute(el3,"role","menuitem");
+          dom.setAttribute(el3,"tabindex","-1");
+          dom.setAttribute(el3,"href","http://support.ghost.org/");
+          dom.setAttribute(el3,"target","_blank");
+          var el4 = dom.createElement("i");
+          dom.setAttribute(el4,"class","icon-support");
+          dom.appendChild(el3, el4);
+          var el4 = dom.createTextNode(" 支持中心");
+          dom.appendChild(el3, el4);
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n                ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("li");
+          dom.setAttribute(el2,"role","presentation");
+          var el3 = dom.createElement("a");
+          dom.setAttribute(el3,"class","dropdown-item help-menu-tweet");
+          dom.setAttribute(el3,"role","menuitem");
+          dom.setAttribute(el3,"tabindex","-1");
+          dom.setAttribute(el3,"href","https://twitter.com/intent/tweet?text=%40TryGhost+Hi%21+Can+you+help+me+with+&related=TryGhost");
+          dom.setAttribute(el3,"target","_blank");
+          dom.setAttribute(el3,"onclick","window.open(this.href, 'twitter-share', 'width=550,height=235');return false;");
+          var el4 = dom.createElement("i");
+          dom.setAttribute(el4,"class","icon-twitter");
+          dom.appendChild(el3, el4);
+          var el4 = dom.createTextNode(" Tweet @TryGhost!");
+          dom.appendChild(el3, el4);
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n                ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("li");
+          dom.setAttribute(el2,"class","divider");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n                ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("li");
+          dom.setAttribute(el2,"role","presentation");
+          var el3 = dom.createElement("a");
+          dom.setAttribute(el3,"class","dropdown-item help-menu-weibo");
+          dom.setAttribute(el3,"role","menuitem");
+          dom.setAttribute(el3,"tabindex","-1");
+          dom.setAttribute(el3,"href","http://weibo.com/ghostchinacom");
+          dom.setAttribute(el3,"target","_blank");
+          var el4 = dom.createTextNode("微博 @Ghost中国");
+          dom.appendChild(el3, el4);
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n                ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("li");
+          dom.setAttribute(el2,"class","divider");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n                ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("li");
+          dom.setAttribute(el2,"role","presentation");
+          var el3 = dom.createElement("a");
+          dom.setAttribute(el3,"class","dropdown-item help-menu-how-to");
+          dom.setAttribute(el3,"role","menuitem");
+          dom.setAttribute(el3,"tabindex","-1");
+          dom.setAttribute(el3,"href","http://www.ghostchina.com/how-to-use-ghost/");
+          dom.setAttribute(el3,"target","_blank");
+          var el4 = dom.createElement("i");
+          dom.setAttribute(el4,"class","icon-book");
+          dom.appendChild(el3, el4);
+          var el4 = dom.createTextNode(" 如何使用 Ghost 博客系统");
+          dom.appendChild(el3, el4);
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n                ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("li");
+          dom.setAttribute(el2,"role","presentation");
+          var el3 = dom.createElement("a");
+          dom.setAttribute(el3,"class","dropdown-item help-menu-markdown");
+          dom.setAttribute(el3,"role","menuitem");
+          dom.setAttribute(el3,"tabindex","-1");
+          dom.setAttribute(el3,"href","");
+          var el4 = dom.createElement("i");
+          dom.setAttribute(el4,"class","icon-markdown");
+          dom.appendChild(el3, el4);
+          var el4 = dom.createTextNode(" Markdown 帮助手册");
+          dom.appendChild(el3, el4);
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n                ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("li");
+          dom.setAttribute(el2,"class","divider");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n                ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("li");
+          dom.setAttribute(el2,"role","presentation");
+          var el3 = dom.createElement("a");
+          dom.setAttribute(el3,"class","dropdown-item help-menu-wishlist");
+          dom.setAttribute(el3,"role","menuitem");
+          dom.setAttribute(el3,"tabindex","-1");
+          dom.setAttribute(el3,"href","http://ideas.ghost.org/");
+          dom.setAttribute(el3,"target","_blank");
+          var el4 = dom.createElement("i");
+          dom.setAttribute(el4,"class","icon-list");
+          dom.appendChild(el3, el4);
+          var el4 = dom.createTextNode(" 心愿列表");
+          dom.appendChild(el3, el4);
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n            ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var element0 = dom.childAt(fragment, [1, 13, 0]);
+          var morphs = new Array(1);
+          morphs[0] = dom.createElementMorph(element0);
+          return morphs;
+        },
+        statements: [
+          ["element","action",["openModal","markdown"],[]]
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    return {
+      meta: {
+        "revision": "Ember@1.13.2",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 75,
+            "column": 0
+          }
+        },
+        "moduleName": "ghost/templates/-navbar.hbs"
+      },
+      arity: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      buildFragment: function buildFragment(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createElement("nav");
+        dom.setAttribute(el1,"class","global-nav");
+        dom.setAttribute(el1,"role","navigation");
+        var el2 = dom.createTextNode("\n\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("a");
+        dom.setAttribute(el2,"class","nav-item ghost-logo");
+        dom.setAttribute(el2,"title","访问博客首页");
+        var el3 = dom.createTextNode("\n        ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("div");
+        dom.setAttribute(el3,"class","nav-label");
+        var el4 = dom.createElement("i");
+        dom.setAttribute(el4,"class","icon-ghost");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode(" ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createElement("span");
+        var el5 = dom.createTextNode("访问博客首页");
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode(" ");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n\n");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createComment("");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createComment("");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createComment("");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("div");
+        dom.setAttribute(el2,"class","nav-item user-menu");
+        var el3 = dom.createTextNode("\n");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createComment("");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createComment("");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("    ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("div");
+        dom.setAttribute(el2,"class","nav-item help-menu");
+        var el3 = dom.createTextNode("\n");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createComment("");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createComment("");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("    ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n\n");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n\n");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createElement("div");
+        dom.setAttribute(el1,"class","nav-cover js-nav-cover");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+        var element4 = dom.childAt(fragment, [0]);
+        var element5 = dom.childAt(element4, [1]);
+        var element6 = dom.childAt(element4, [9]);
+        var element7 = dom.childAt(element4, [11]);
+        var morphs = new Array(8);
+        morphs[0] = dom.createAttrMorph(element5, 'href');
+        morphs[1] = dom.createMorphAt(element4,3,3);
+        morphs[2] = dom.createMorphAt(element4,5,5);
+        morphs[3] = dom.createMorphAt(element4,7,7);
+        morphs[4] = dom.createMorphAt(element6,1,1);
+        morphs[5] = dom.createMorphAt(element6,2,2);
+        morphs[6] = dom.createMorphAt(element7,1,1);
+        morphs[7] = dom.createMorphAt(element7,2,2);
+        return morphs;
+      },
+      statements: [
+        ["attribute","href",["concat",[["subexpr","gh-path",["blog"],[]]]]],
+        ["block","link-to",["posts"],["classNames","nav-item nav-content js-nav-item"],0,null],
+        ["block","link-to",["editor.new"],["classNames","nav-item nav-new js-nav-item"],1,null],
+        ["block","unless",[["get","session.user.isAuthor"]],[],2,null],
+        ["block","gh-dropdown-button",[],["dropdownName","user-menu","tagName","div","classNames","nav-label clearfix"],3,null],
+        ["block","gh-dropdown",[],["tagName","div","classNames","dropdown","name","user-menu","closeOnClick","true"],4,null],
+        ["block","gh-dropdown-button",[],["dropdownName","help-menu","tagName","div","classNames","nav-label clearfix"],5,null],
+        ["block","gh-dropdown",[],["tagName","div","classNames","dropdown","name","help-menu","closeOnClick","true"],6,null]
+      ],
+      locals: [],
+      templates: [child0, child1, child2, child3, child4, child5, child6]
+    };
+  }()));
+
+});
 define('ghost/templates/-user-list-item', ['exports'], function (exports) {
 
   'use strict';
@@ -10058,7 +10784,7 @@ define('ghost/templates/-user-list-item', ['exports'], function (exports) {
           },
           statements: [
             ["attribute","class",["concat",["role-label ",["get","role.lowerCaseName"]]]],
-            ["content","role.name"]
+            ["content","role.description"]
           ],
           locals: ["role"],
           templates: []
@@ -10130,9 +10856,9 @@ define('ghost/templates/-user-list-item', ['exports'], function (exports) {
         dom.appendChild(el1, el2);
         var el2 = dom.createElement("span");
         dom.setAttribute(el2,"class","hidden");
-        var el3 = dom.createTextNode("Photo of ");
-        dom.appendChild(el2, el3);
         var el3 = dom.createComment("");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode(" 的照片");
         dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n");
@@ -10161,7 +10887,7 @@ define('ghost/templates/-user-list-item', ['exports'], function (exports) {
         dom.appendChild(el1, el2);
         var el2 = dom.createElement("span");
         dom.setAttribute(el2,"class","description");
-        var el3 = dom.createTextNode("Last seen: ");
+        var el3 = dom.createTextNode("最后一次登录：");
         dom.appendChild(el2, el3);
         var el3 = dom.createComment("");
         dom.appendChild(el2, el3);
@@ -10187,7 +10913,7 @@ define('ghost/templates/-user-list-item', ['exports'], function (exports) {
         var element2 = dom.childAt(fragment, [2]);
         var morphs = new Array(5);
         morphs[0] = dom.createAttrMorph(element1, 'style');
-        morphs[1] = dom.createMorphAt(dom.childAt(element1, [1]),1,1);
+        morphs[1] = dom.createMorphAt(dom.childAt(element1, [1]),0,0);
         morphs[2] = dom.createMorphAt(dom.childAt(element2, [1]),1,1);
         morphs[3] = dom.createMorphAt(dom.childAt(element2, [5]),1,1);
         morphs[4] = dom.createMorphAt(dom.childAt(fragment, [4]),1,1);
@@ -10223,7 +10949,7 @@ define('ghost/templates/about', ['exports'], function (exports) {
             },
             "end": {
               "line": 3,
-              "column": 82
+              "column": 79
             }
           },
           "moduleName": "ghost/templates/about.hbs"
@@ -10234,7 +10960,7 @@ define('ghost/templates/about', ['exports'], function (exports) {
         buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
           var el1 = dom.createElement("span");
-          var el2 = dom.createTextNode("About Ghost");
+          var el2 = dom.createTextNode("关于 Ghost");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           return el0;
@@ -10255,11 +10981,11 @@ define('ghost/templates/about', ['exports'], function (exports) {
             "source": null,
             "start": {
               "line": 17,
-              "column": 42
+              "column": 43
             },
             "end": {
               "line": 17,
-              "column": 74
+              "column": 75
             }
           },
           "moduleName": "ghost/templates/about.hbs"
@@ -10295,11 +11021,11 @@ define('ghost/templates/about', ['exports'], function (exports) {
             "source": null,
             "start": {
               "line": 17,
-              "column": 74
+              "column": 75
             },
             "end": {
               "line": 17,
-              "column": 88
+              "column": 89
             }
           },
           "moduleName": "ghost/templates/about.hbs"
@@ -10321,6 +11047,52 @@ define('ghost/templates/about', ['exports'], function (exports) {
         templates: []
       };
     }());
+    var child3 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@1.13.2",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 18,
+              "column": 16
+            },
+            "end": {
+              "line": 18,
+              "column": 86
+            }
+          },
+          "moduleName": "ghost/templates/about.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createElement("li");
+          var el2 = dom.createElement("strong");
+          var el3 = dom.createTextNode("文件存储：");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode(" ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createComment("");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(dom.childAt(fragment, [0]),2,2);
+          return morphs;
+        },
+        statements: [
+          ["content","model.storage"]
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
     return {
       meta: {
         "revision": "Ember@1.13.2",
@@ -10331,7 +11103,7 @@ define('ghost/templates/about', ['exports'], function (exports) {
             "column": 0
           },
           "end": {
-            "line": 45,
+            "line": 55,
             "column": 0
           }
         },
@@ -10389,7 +11161,7 @@ define('ghost/templates/about', ['exports'], function (exports) {
         var el5 = dom.createElement("li");
         dom.setAttribute(el5,"class","gh-env-list-version");
         var el6 = dom.createElement("strong");
-        var el7 = dom.createTextNode("Version");
+        var el7 = dom.createTextNode("当前版本：");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode(" ");
@@ -10401,7 +11173,7 @@ define('ghost/templates/about', ['exports'], function (exports) {
         dom.appendChild(el4, el5);
         var el5 = dom.createElement("li");
         var el6 = dom.createElement("strong");
-        var el7 = dom.createTextNode("Environment");
+        var el7 = dom.createTextNode("运行环境：");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode(" ");
@@ -10414,7 +11186,7 @@ define('ghost/templates/about', ['exports'], function (exports) {
         var el5 = dom.createElement("li");
         dom.setAttribute(el5,"class","gh-env-list-database-type");
         var el6 = dom.createElement("strong");
-        var el7 = dom.createTextNode("Database");
+        var el7 = dom.createTextNode("数据库引擎：");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode(" ");
@@ -10426,13 +11198,17 @@ define('ghost/templates/about', ['exports'], function (exports) {
         dom.appendChild(el4, el5);
         var el5 = dom.createElement("li");
         var el6 = dom.createElement("strong");
-        var el7 = dom.createTextNode("Mail");
+        var el7 = dom.createTextNode("邮件服务：");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode(" ");
         dom.appendChild(el5, el6);
         var el6 = dom.createComment("");
         dom.appendChild(el5, el6);
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("\n                ");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createComment("");
         dom.appendChild(el4, el5);
         var el5 = dom.createTextNode("\n            ");
         dom.appendChild(el4, el5);
@@ -10444,19 +11220,19 @@ define('ghost/templates/about', ['exports'], function (exports) {
         var el5 = dom.createTextNode("\n                ");
         dom.appendChild(el4, el5);
         var el5 = dom.createElement("a");
-        dom.setAttribute(el5,"href","http://support.ghost.org");
+        dom.setAttribute(el5,"href","http://www.ghostchina.com/");
         dom.setAttribute(el5,"class","btn btn-minor");
         dom.setAttribute(el5,"target","_blank");
-        var el6 = dom.createTextNode("User Documentation");
+        var el6 = dom.createTextNode("中文资料");
         dom.appendChild(el5, el6);
         dom.appendChild(el4, el5);
         var el5 = dom.createTextNode("\n                ");
         dom.appendChild(el4, el5);
         var el5 = dom.createElement("a");
-        dom.setAttribute(el5,"href","https://ghost.org/slack/");
+        dom.setAttribute(el5,"href","http://wenda.ghostchina.com/");
         dom.setAttribute(el5,"class","btn btn-minor");
         dom.setAttribute(el5,"target","_blank");
-        var el6 = dom.createTextNode("Get Help With Ghost");
+        var el6 = dom.createTextNode("问答社区");
         dom.appendChild(el5, el6);
         dom.appendChild(el4, el5);
         var el5 = dom.createTextNode("\n            ");
@@ -10472,7 +11248,7 @@ define('ghost/templates/about', ['exports'], function (exports) {
         var el4 = dom.createTextNode("\n            ");
         dom.appendChild(el3, el4);
         var el4 = dom.createElement("h2");
-        var el5 = dom.createTextNode("The People Who Made it Possible");
+        var el5 = dom.createTextNode("主创团队");
         dom.appendChild(el4, el5);
         dom.appendChild(el3, el4);
         var el4 = dom.createTextNode("\n\n            ");
@@ -10489,7 +11265,7 @@ define('ghost/templates/about', ['exports'], function (exports) {
         var el4 = dom.createTextNode("\n\n            ");
         dom.appendChild(el3, el4);
         var el4 = dom.createElement("p");
-        var el5 = dom.createTextNode("Ghost is built by an incredible group of contributors from all over the world. Here are just a few of the people who helped create the version you’re using right now.");
+        var el5 = dom.createTextNode("Ghost的开发者来自全球各地，这里列出的只是当前版本的主要开发者。");
         dom.appendChild(el4, el5);
         dom.appendChild(el3, el4);
         var el4 = dom.createTextNode("\n\n            ");
@@ -10497,7 +11273,63 @@ define('ghost/templates/about', ['exports'], function (exports) {
         var el4 = dom.createElement("a");
         dom.setAttribute(el4,"href","https://ghost.org/about/contribute/");
         dom.setAttribute(el4,"class","btn btn-blue btn-lg");
-        var el5 = dom.createTextNode("Find out how you can get involved");
+        var el5 = dom.createTextNode("你可以帮助 Ghost 变得更好！");
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n\n            ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createElement("h2");
+        dom.setAttribute(el4,"style","margin-top: 45px;");
+        var el5 = dom.createTextNode("Ghost 中文团队");
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n\n            ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createElement("p");
+        var el5 = dom.createElement("a");
+        dom.setAttribute(el5,"href","http://www.ghostchina.com");
+        dom.setAttribute(el5,"target","_blank");
+        dom.setAttribute(el5,"title","Ghost中文网");
+        var el6 = dom.createElement("img");
+        dom.setAttribute(el6,"height","70");
+        dom.setAttribute(el6,"alt","logo");
+        dom.appendChild(el5, el6);
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n\n            ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createElement("p");
+        var el5 = dom.createTextNode("Ghost 博客系统中文版由 ");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createElement("a");
+        dom.setAttribute(el5,"href","http://www.ghostchina.com");
+        dom.setAttribute(el5,"target","_blank");
+        var el6 = dom.createTextNode("Ghost中文网");
+        dom.appendChild(el5, el6);
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode(" 提供技术支持。");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createElement("br");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("\n            中文官网：");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createElement("a");
+        dom.setAttribute(el5,"href","http://www.ghostchina.com");
+        dom.setAttribute(el5,"target","_blank");
+        var el6 = dom.createTextNode("www.ghostchina.com");
+        dom.appendChild(el5, el6);
+        dom.appendChild(el4, el5);
+        var el5 = dom.createElement("br");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("\n            问答社区：");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createElement("a");
+        dom.setAttribute(el5,"href","http://wenda.ghostchina.com");
+        dom.setAttribute(el5,"target","_blank");
+        var el6 = dom.createTextNode("wenda.ghostchina.com");
+        dom.appendChild(el5, el6);
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("\n            ");
         dom.appendChild(el4, el5);
         dom.appendChild(el3, el4);
         var el4 = dom.createTextNode("\n\n        ");
@@ -10551,7 +11383,9 @@ define('ghost/templates/about', ['exports'], function (exports) {
         var element2 = dom.childAt(element1, [1]);
         var element3 = dom.childAt(element2, [1]);
         var element4 = dom.childAt(element1, [3, 1]);
-        var morphs = new Array(8);
+        var element5 = dom.childAt(element1, [5]);
+        var element6 = dom.childAt(element5, [11, 0, 0]);
+        var morphs = new Array(10);
         morphs[0] = dom.createMorphAt(dom.childAt(element0, [1]),1,1);
         morphs[1] = dom.createAttrMorph(element3, 'src');
         morphs[2] = dom.createMorphAt(element2,3,3);
@@ -10559,7 +11393,9 @@ define('ghost/templates/about', ['exports'], function (exports) {
         morphs[4] = dom.createMorphAt(dom.childAt(element4, [3]),2,2);
         morphs[5] = dom.createMorphAt(dom.childAt(element4, [5]),2,2);
         morphs[6] = dom.createMorphAt(dom.childAt(element4, [7]),2,2);
-        morphs[7] = dom.createMorphAt(dom.childAt(element1, [5, 3]),1,1);
+        morphs[7] = dom.createMorphAt(element4,9,9);
+        morphs[8] = dom.createMorphAt(dom.childAt(element5, [3]),1,1);
+        morphs[9] = dom.createAttrMorph(element6, 'src');
         return morphs;
       },
       statements: [
@@ -10570,10 +11406,12 @@ define('ghost/templates/about', ['exports'], function (exports) {
         ["content","model.environment"],
         ["content","model.database"],
         ["block","if",[["get","model.mail"]],[],1,2],
-        ["inline","partial",["contributors"],[]]
+        ["block","if",[["get","model.storage"]],[],3,null],
+        ["inline","partial",["contributors"],[]],
+        ["attribute","src",["concat",[["subexpr","gh-path",["admin","/img/ghostchina.png"],[]]]]]
       ],
       locals: [],
-      templates: [child0, child1, child2]
+      templates: [child0, child1, child2, child3]
     };
   }()));
 
@@ -10942,7 +11780,7 @@ define('ghost/templates/components/gh-alert', ['exports'], function (exports) {
           },
           "end": {
             "line": 4,
-            "column": 111
+            "column": 108
           }
         },
         "moduleName": "ghost/templates/components/gh-alert.hbs"
@@ -10967,7 +11805,7 @@ define('ghost/templates/components/gh-alert', ['exports'], function (exports) {
         dom.setAttribute(el1,"class","gh-alert-close icon-x");
         var el2 = dom.createElement("span");
         dom.setAttribute(el2,"class","hidden");
-        var el3 = dom.createTextNode("Close");
+        var el3 = dom.createTextNode("关闭");
         dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
         dom.appendChild(el0, el1);
@@ -11973,7 +12811,7 @@ define('ghost/templates/components/gh-modal-dialog', ['exports'], function (expo
             },
             "end": {
               "line": 5,
-              "column": 136
+              "column": 130
             }
           },
           "moduleName": "ghost/templates/components/gh-modal-dialog.hbs"
@@ -11986,10 +12824,10 @@ define('ghost/templates/components/gh-modal-dialog', ['exports'], function (expo
           var el1 = dom.createElement("a");
           dom.setAttribute(el1,"class","close icon-x");
           dom.setAttribute(el1,"href","");
-          dom.setAttribute(el1,"title","Close");
+          dom.setAttribute(el1,"title","关闭");
           var el2 = dom.createElement("span");
           dom.setAttribute(el2,"class","hidden");
-          var el3 = dom.createTextNode("Close");
+          var el3 = dom.createTextNode("关闭");
           dom.appendChild(el2, el3);
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
@@ -12209,7 +13047,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("div");
           dom.setAttribute(el1,"class","gh-nav-menu-icon");
-          dom.setAttribute(el1,"style","background-image: url(https://s3.amazonaws.com/f.cl.ly/items/3I0g431b2b3q00253K1V/d16dc430c9c4f5c09d6ca09be3e5c72fdb21c1ac.png)");
+          dom.setAttribute(el1,"style","background-image: url(http://static.ghostchina.com/image/f/4a/cd544250b5bb82a17af6e0c63aa79.png)");
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n    ");
           dom.appendChild(el0, el1);
@@ -12269,7 +13107,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
               },
               "end": {
                 "line": 11,
-                "column": 176
+                "column": 173
               }
             },
             "moduleName": "ghost/templates/components/gh-nav-menu.hbs"
@@ -12282,7 +13120,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
             var el1 = dom.createElement("i");
             dom.setAttribute(el1,"class","icon-shop");
             dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode(" About Ghost");
+            var el1 = dom.createTextNode(" 关于 Ghost");
             dom.appendChild(el0, el1);
             return el0;
           },
@@ -12306,7 +13144,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
               },
               "end": {
                 "line": 13,
-                "column": 199
+                "column": 191
               }
             },
             "moduleName": "ghost/templates/components/gh-nav-menu.hbs"
@@ -12319,7 +13157,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
             var el1 = dom.createElement("i");
             dom.setAttribute(el1,"class","icon-user");
             dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode(" Your Profile");
+            var el1 = dom.createTextNode(" 个人资料");
             dom.appendChild(el0, el1);
             return el0;
           },
@@ -12343,7 +13181,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
               },
               "end": {
                 "line": 14,
-                "column": 166
+                "column": 160
               }
             },
             "moduleName": "ghost/templates/components/gh-nav-menu.hbs"
@@ -12356,7 +13194,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
             var el1 = dom.createElement("i");
             dom.setAttribute(el1,"class","icon-signout");
             dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode(" Sign Out");
+            var el1 = dom.createTextNode(" 退出");
             dom.appendChild(el0, el1);
             return el0;
           },
@@ -12457,7 +13295,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
             },
             "end": {
               "line": 23,
-              "column": 101
+              "column": 97
             }
           },
           "moduleName": "ghost/templates/components/gh-nav-menu.hbs"
@@ -12470,7 +13308,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
           var el1 = dom.createElement("i");
           dom.setAttribute(el1,"class","icon-pen");
           dom.appendChild(el0, el1);
-          var el1 = dom.createTextNode("New Post");
+          var el1 = dom.createTextNode("新建博文");
           dom.appendChild(el0, el1);
           return el0;
         },
@@ -12494,7 +13332,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
             },
             "end": {
               "line": 24,
-              "column": 100
+              "column": 97
             }
           },
           "moduleName": "ghost/templates/components/gh-nav-menu.hbs"
@@ -12507,7 +13345,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
           var el1 = dom.createElement("i");
           dom.setAttribute(el1,"class","icon-content");
           dom.appendChild(el0, el1);
-          var el1 = dom.createTextNode("Content");
+          var el1 = dom.createTextNode("博文列表");
           dom.appendChild(el0, el1);
           return el0;
         },
@@ -12544,7 +13382,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
           var el1 = dom.createElement("i");
           dom.setAttribute(el1,"class","icon-team");
           dom.appendChild(el0, el1);
-          var el1 = dom.createTextNode("Team");
+          var el1 = dom.createTextNode("用户管理");
           dom.appendChild(el0, el1);
           return el0;
         },
@@ -12569,7 +13407,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
               },
               "end": {
                 "line": 32,
-                "column": 120
+                "column": 117
               }
             },
             "moduleName": "ghost/templates/components/gh-nav-menu.hbs"
@@ -12582,7 +13420,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
             var el1 = dom.createElement("i");
             dom.setAttribute(el1,"class","icon-settings");
             dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode("General");
+            var el1 = dom.createTextNode("全局设置");
             dom.appendChild(el0, el1);
             return el0;
           },
@@ -12606,7 +13444,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
               },
               "end": {
                 "line": 34,
-                "column": 128
+                "column": 122
               }
             },
             "moduleName": "ghost/templates/components/gh-nav-menu.hbs"
@@ -12619,7 +13457,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
             var el1 = dom.createElement("i");
             dom.setAttribute(el1,"class","icon-compass");
             dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode("Navigation");
+            var el1 = dom.createTextNode("导航菜单");
             dom.appendChild(el0, el1);
             return el0;
           },
@@ -12656,7 +13494,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
             var el1 = dom.createElement("i");
             dom.setAttribute(el1,"class","icon-tag");
             dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode("Tags");
+            var el1 = dom.createTextNode("标签管理");
             dom.appendChild(el0, el1);
             return el0;
           },
@@ -12680,7 +13518,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
               },
               "end": {
                 "line": 36,
-                "column": 137
+                "column": 127
               }
             },
             "moduleName": "ghost/templates/components/gh-nav-menu.hbs"
@@ -12693,7 +13531,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
             var el1 = dom.createElement("i");
             dom.setAttribute(el1,"class","icon-code");
             dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode("Code Injection");
+            var el1 = dom.createTextNode("插入代码");
             dom.appendChild(el0, el1);
             return el0;
           },
@@ -12730,7 +13568,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
             var el1 = dom.createElement("i");
             dom.setAttribute(el1,"class","icon-apps");
             dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode("Labs");
+            var el1 = dom.createTextNode("实验功能");
             dom.appendChild(el0, el1);
             return el0;
           },
@@ -12752,7 +13590,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
               "column": 4
             },
             "end": {
-              "line": 39,
+              "line": 42,
               "column": 4
             }
           },
@@ -12771,7 +13609,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
           dom.appendChild(el1, el2);
           var el2 = dom.createElement("li");
           dom.setAttribute(el2,"class","gh-nav-list-h");
-          var el3 = dom.createTextNode("Settings");
+          var el3 = dom.createTextNode("设置");
           dom.appendChild(el2, el3);
           dom.appendChild(el1, el2);
           var el2 = dom.createTextNode("\n            ");
@@ -12802,6 +13640,24 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
           dom.appendChild(el1, el2);
           var el2 = dom.createElement("li");
           var el3 = dom.createComment("");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n            ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("li");
+          var el3 = dom.createTextNode("\n                ");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createElement("a");
+          dom.setAttribute(el3,"class","gh-nav-settings-theme-market");
+          dom.setAttribute(el3,"href","http://mb.ghostchina.com/");
+          dom.setAttribute(el3,"target","_blank");
+          var el4 = dom.createElement("i");
+          dom.setAttribute(el4,"class","icon-design");
+          dom.appendChild(el3, el4);
+          var el4 = dom.createTextNode("主题市场");
+          dom.appendChild(el3, el4);
+          dom.appendChild(el2, el3);
+          var el3 = dom.createTextNode("\n            ");
           dom.appendChild(el2, el3);
           dom.appendChild(el1, el2);
           var el2 = dom.createTextNode("\n        ");
@@ -12839,11 +13695,11 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
           "loc": {
             "source": null,
             "start": {
-              "line": 45,
+              "line": 48,
               "column": 8
             },
             "end": {
-              "line": 49,
+              "line": 52,
               "column": 8
             }
           },
@@ -12864,7 +13720,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
           dom.setAttribute(el2,"class","icon-question");
           var el3 = dom.createElement("span");
           dom.setAttribute(el3,"class","hidden");
-          var el4 = dom.createTextNode("Help");
+          var el4 = dom.createTextNode("帮助");
           dom.appendChild(el3, el4);
           dom.appendChild(el2, el3);
           dom.appendChild(el1, el2);
@@ -12890,11 +13746,11 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
           "loc": {
             "source": null,
             "start": {
-              "line": 50,
+              "line": 53,
               "column": 8
             },
             "end": {
-              "line": 60,
+              "line": 63,
               "column": 8
             }
           },
@@ -12918,12 +13774,12 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
           dom.setAttribute(el3,"class","dropdown-item help-menu-support");
           dom.setAttribute(el3,"role","menuitem");
           dom.setAttribute(el3,"tabindex","-1");
-          dom.setAttribute(el3,"href","http://support.ghost.org/");
+          dom.setAttribute(el3,"href","http://www.ghostchina.com/");
           dom.setAttribute(el3,"target","_blank");
           var el4 = dom.createElement("i");
           dom.setAttribute(el4,"class","icon-ambulance");
           dom.appendChild(el3, el4);
-          var el4 = dom.createTextNode(" Support Center");
+          var el4 = dom.createTextNode(" 支持中心");
           dom.appendChild(el3, el4);
           dom.appendChild(el2, el3);
           dom.appendChild(el1, el2);
@@ -12958,12 +13814,12 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
           dom.setAttribute(el3,"class","dropdown-item help-menu-how-to");
           dom.setAttribute(el3,"role","menuitem");
           dom.setAttribute(el3,"tabindex","-1");
-          dom.setAttribute(el3,"href","http://support.ghost.org/how-to-use-ghost/");
+          dom.setAttribute(el3,"href","http://www.ghostchina.com/how-to-use-ghost/");
           dom.setAttribute(el3,"target","_blank");
           var el4 = dom.createElement("i");
           dom.setAttribute(el4,"class","icon-book");
           dom.appendChild(el3, el4);
-          var el4 = dom.createTextNode(" How to Use Ghost");
+          var el4 = dom.createTextNode(" 如何使用 Ghost");
           dom.appendChild(el3, el4);
           dom.appendChild(el2, el3);
           dom.appendChild(el1, el2);
@@ -12979,7 +13835,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
           var el4 = dom.createElement("i");
           dom.setAttribute(el4,"class","icon-markdown");
           dom.appendChild(el3, el4);
-          var el4 = dom.createTextNode(" Markdown Help");
+          var el4 = dom.createTextNode(" Markdown 手册");
           dom.appendChild(el3, el4);
           dom.appendChild(el2, el3);
           dom.appendChild(el1, el2);
@@ -13001,7 +13857,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
           var el4 = dom.createElement("i");
           dom.setAttribute(el4,"class","icon-idea");
           dom.appendChild(el3, el4);
-          var el4 = dom.createTextNode(" Wishlist");
+          var el4 = dom.createTextNode(" 心愿列表");
           dom.appendChild(el3, el4);
           dom.appendChild(el2, el3);
           dom.appendChild(el1, el2);
@@ -13035,7 +13891,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
             "column": 0
           },
           "end": {
-            "line": 64,
+            "line": 67,
             "column": 0
           }
         },
@@ -13106,7 +13962,7 @@ define('ghost/templates/components/gh-nav-menu', ['exports'], function (exports)
         var el2 = dom.createElement("a");
         dom.setAttribute(el2,"class","gh-nav-footer-sitelink");
         dom.setAttribute(el2,"target","_blank");
-        var el3 = dom.createTextNode("View blog");
+        var el3 = dom.createTextNode("访问博客");
         dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n    ");
@@ -13259,7 +14115,7 @@ define('ghost/templates/components/gh-navitem', ['exports'], function (exports) 
           dom.appendChild(el1, el2);
           var el2 = dom.createElement("span");
           dom.setAttribute(el2,"class","sr-only");
-          var el3 = dom.createTextNode("Reorder");
+          var el3 = dom.createTextNode("重新排序");
           dom.appendChild(el2, el3);
           dom.appendChild(el1, el2);
           var el2 = dom.createTextNode("\n    ");
@@ -13284,107 +14140,11 @@ define('ghost/templates/components/gh-navitem', ['exports'], function (exports) 
           "loc": {
             "source": null,
             "start": {
-              "line": 8,
-              "column": 4
-            },
-            "end": {
-              "line": 11,
-              "column": 4
-            }
-          },
-          "moduleName": "ghost/templates/components/gh-navitem.hbs"
-        },
-        arity: 0,
-        cachedFragment: null,
-        hasRendered: false,
-        buildFragment: function buildFragment(dom) {
-          var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("        ");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createComment("");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createTextNode("\n        ");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createComment("");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createTextNode("\n");
-          dom.appendChild(el0, el1);
-          return el0;
-        },
-        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-          var morphs = new Array(2);
-          morphs[0] = dom.createMorphAt(fragment,1,1,contextualElement);
-          morphs[1] = dom.createMorphAt(fragment,3,3,contextualElement);
-          return morphs;
-        },
-        statements: [
-          ["inline","gh-trim-focus-input",[],["focus",["subexpr","@mut",[["get","navItem.last"]],[]],"placeholder","Label","value",["subexpr","@mut",[["get","navItem.label"]],[]]]],
-          ["inline","gh-error-message",[],["errors",["subexpr","@mut",[["get","navItem.errors"]],[]],"property","label"]]
-        ],
-        locals: [],
-        templates: []
-      };
-    }());
-    var child2 = (function() {
-      return {
-        meta: {
-          "revision": "Ember@1.13.2",
-          "loc": {
-            "source": null,
-            "start": {
-              "line": 12,
-              "column": 4
-            },
-            "end": {
-              "line": 15,
-              "column": 4
-            }
-          },
-          "moduleName": "ghost/templates/components/gh-navitem.hbs"
-        },
-        arity: 0,
-        cachedFragment: null,
-        hasRendered: false,
-        buildFragment: function buildFragment(dom) {
-          var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("        ");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createComment("");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createTextNode("\n        ");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createComment("");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createTextNode("\n");
-          dom.appendChild(el0, el1);
-          return el0;
-        },
-        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-          var morphs = new Array(2);
-          morphs[0] = dom.createMorphAt(fragment,1,1,contextualElement);
-          morphs[1] = dom.createMorphAt(fragment,3,3,contextualElement);
-          return morphs;
-        },
-        statements: [
-          ["inline","gh-navitem-url-input",[],["baseUrl",["subexpr","@mut",[["get","baseUrl"]],[]],"url",["subexpr","@mut",[["get","navItem.url"]],[]],"last",["subexpr","@mut",[["get","navItem.last"]],[]],"change","updateUrl"]],
-          ["inline","gh-error-message",[],["errors",["subexpr","@mut",[["get","navItem.errors"]],[]],"property","url"]]
-        ],
-        locals: [],
-        templates: []
-      };
-    }());
-    var child3 = (function() {
-      return {
-        meta: {
-          "revision": "Ember@1.13.2",
-          "loc": {
-            "source": null,
-            "start": {
-              "line": 18,
+              "line": 16,
               "column": 0
             },
             "end": {
-              "line": 22,
+              "line": 20,
               "column": 0
             }
           },
@@ -13406,7 +14166,7 @@ define('ghost/templates/components/gh-navitem', ['exports'], function (exports) 
           dom.setAttribute(el2,"class","icon-add2");
           var el3 = dom.createElement("span");
           dom.setAttribute(el3,"class","sr-only");
-          var el4 = dom.createTextNode("Add");
+          var el4 = dom.createTextNode("添加");
           dom.appendChild(el3, el4);
           dom.appendChild(el2, el3);
           dom.appendChild(el1, el2);
@@ -13430,18 +14190,18 @@ define('ghost/templates/components/gh-navitem', ['exports'], function (exports) 
         templates: []
       };
     }());
-    var child4 = (function() {
+    var child2 = (function() {
       return {
         meta: {
           "revision": "Ember@1.13.2",
           "loc": {
             "source": null,
             "start": {
-              "line": 22,
+              "line": 20,
               "column": 0
             },
             "end": {
-              "line": 26,
+              "line": 24,
               "column": 0
             }
           },
@@ -13463,7 +14223,7 @@ define('ghost/templates/components/gh-navitem', ['exports'], function (exports) 
           dom.setAttribute(el2,"class","icon-trash");
           var el3 = dom.createElement("span");
           dom.setAttribute(el3,"class","sr-only");
-          var el4 = dom.createTextNode("Delete");
+          var el4 = dom.createTextNode("删除");
           dom.appendChild(el3, el4);
           dom.appendChild(el2, el3);
           dom.appendChild(el1, el2);
@@ -13497,7 +14257,7 @@ define('ghost/templates/components/gh-navitem', ['exports'], function (exports) 
             "column": 0
           },
           "end": {
-            "line": 27,
+            "line": 25,
             "column": 0
           }
         },
@@ -13514,11 +14274,29 @@ define('ghost/templates/components/gh-navitem', ['exports'], function (exports) 
         dom.appendChild(el0, el1);
         var el1 = dom.createElement("div");
         dom.setAttribute(el1,"class","gh-blognav-line");
+        var el2 = dom.createTextNode("\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("span");
+        dom.setAttribute(el2,"class","gh-blognav-label");
+        var el3 = dom.createTextNode("\n        ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createComment("");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("span");
+        dom.setAttribute(el2,"class","gh-blognav-url");
+        var el3 = dom.createTextNode("\n        ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createComment("");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createComment("");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createComment("");
         dom.appendChild(el1, el2);
         dom.appendChild(el0, el1);
         var el1 = dom.createTextNode("\n\n");
@@ -13531,8 +14309,8 @@ define('ghost/templates/components/gh-navitem', ['exports'], function (exports) 
         var element2 = dom.childAt(fragment, [2]);
         var morphs = new Array(4);
         morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
-        morphs[1] = dom.createMorphAt(element2,1,1);
-        morphs[2] = dom.createMorphAt(element2,2,2);
+        morphs[1] = dom.createMorphAt(dom.childAt(element2, [1]),1,1);
+        morphs[2] = dom.createMorphAt(dom.childAt(element2, [3]),1,1);
         morphs[3] = dom.createMorphAt(fragment,4,4,contextualElement);
         dom.insertBoundary(fragment, 0);
         dom.insertBoundary(fragment, null);
@@ -13540,12 +14318,12 @@ define('ghost/templates/components/gh-navitem', ['exports'], function (exports) 
       },
       statements: [
         ["block","unless",[["get","navItem.last"]],[],0,null],
-        ["block","gh-validation-status-container",[],["tagName","span","class","gh-blognav-label","errors",["subexpr","@mut",[["get","navItem.errors"]],[]],"property","label","hasValidated",["subexpr","@mut",[["get","navItem.hasValidated"]],[]]],1,null],
-        ["block","gh-validation-status-container",[],["tagName","span","class","gh-blognav-url","errors",["subexpr","@mut",[["get","navItem.errors"]],[]],"property","url","hasValidated",["subexpr","@mut",[["get","navItem.hasValidated"]],[]]],2,null],
-        ["block","if",[["get","navItem.last"]],[],3,4]
+        ["inline","gh-trim-focus-input",[],["class","gh-input","focus",["subexpr","@mut",[["get","navItem.last"]],[]],"placeholder","标题","value",["subexpr","@mut",[["get","navItem.label"]],[]]]],
+        ["inline","gh-navitem-url-input",[],["class","gh-input","baseUrl",["subexpr","@mut",[["get","baseUrl"]],[]],"url",["subexpr","@mut",[["get","navItem.url"]],[]],"last",["subexpr","@mut",[["get","navItem.last"]],[]],"change","updateUrl"]],
+        ["block","if",[["get","navItem.last"]],[],1,2]
       ],
       locals: [],
-      templates: [child0, child1, child2, child3, child4]
+      templates: [child0, child1, child2]
     };
   }()));
 
@@ -13565,8 +14343,8 @@ define('ghost/templates/components/gh-notification', ['exports'], function (expo
             "column": 0
           },
           "end": {
-            "line": 4,
-            "column": 118
+            "line": 5,
+            "column": 0
           }
         },
         "moduleName": "ghost/templates/components/gh-notification.hbs"
@@ -13591,9 +14369,11 @@ define('ghost/templates/components/gh-notification', ['exports'], function (expo
         dom.setAttribute(el1,"class","gh-notification-close icon-x");
         var el2 = dom.createElement("span");
         dom.setAttribute(el2,"class","hidden");
-        var el3 = dom.createTextNode("Close");
+        var el3 = dom.createTextNode("关闭");
         dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
         dom.appendChild(el0, el1);
         return el0;
       },
@@ -13786,7 +14566,7 @@ define('ghost/templates/components/gh-profile-image', ['exports'], function (exp
             dom.appendChild(el1, el2);
             var el2 = dom.createElement("span");
             dom.setAttribute(el2,"class","sr-only");
-            var el3 = dom.createTextNode("User image");
+            var el3 = dom.createTextNode("用户头像");
             dom.appendChild(el2, el3);
             dom.appendChild(el1, el2);
             var el2 = dom.createTextNode("\n            ");
@@ -13938,7 +14718,7 @@ define('ghost/templates/components/gh-profile-image', ['exports'], function (exp
         dom.appendChild(el3, el4);
         var el4 = dom.createElement("span");
         dom.setAttribute(el4,"class","sr-only");
-        var el5 = dom.createTextNode("Upload an image");
+        var el5 = dom.createTextNode("上传图片");
         dom.appendChild(el4, el5);
         dom.appendChild(el3, el4);
         var el4 = dom.createTextNode("\n        ");
@@ -14012,7 +14792,7 @@ define('ghost/templates/components/gh-search-input', ['exports'], function (expo
         dom.appendChild(el1, el2);
         var el2 = dom.createElement("span");
         dom.setAttribute(el2,"class","sr-only");
-        var el3 = dom.createTextNode("Search");
+        var el3 = dom.createTextNode("搜索");
         dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
         dom.appendChild(el0, el1);
@@ -14029,7 +14809,7 @@ define('ghost/templates/components/gh-search-input', ['exports'], function (expo
         return morphs;
       },
       statements: [
-        ["inline","gh-selectize",[],["placeholder","Search","selection",["subexpr","@mut",[["get","selection"]],[]],"content",["subexpr","@mut",[["get","content"]],[]],"loading",["subexpr","@mut",[["get","isLoading"]],[]],"optionValuePath","content.id","optionLabelPath","content.title","optionGroupPath","content.category","openOnFocus",false,"maxItems","1","on-init","onInit","on-focus","onFocus","on-blur","onBlur","update-filter","onType","select-item","openSelected"]],
+        ["inline","gh-selectize",[],["placeholder","搜索","selection",["subexpr","@mut",[["get","selection"]],[]],"content",["subexpr","@mut",[["get","content"]],[]],"loading",["subexpr","@mut",[["get","isLoading"]],[]],"optionValuePath","content.id","optionLabelPath","content.title","optionGroupPath","content.category","openOnFocus",false,"maxItems","1","on-init","onInit","on-focus","onFocus","on-blur","onBlur","update-filter","onType","select-item","openSelected"]],
         ["element","action",["focusInput"],[]]
       ],
       locals: [],
@@ -14652,7 +15432,7 @@ define('ghost/templates/components/gh-view-title', ['exports'], function (export
         dom.setAttribute(el2,"class","icon-gh");
         var el3 = dom.createElement("span");
         dom.setAttribute(el3,"class","sr-only");
-        var el4 = dom.createTextNode("Menu");
+        var el4 = dom.createTextNode("菜单");
         dom.appendChild(el3, el4);
         dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
@@ -14724,7 +15504,7 @@ define('ghost/templates/editor/edit', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["inline","gh-trim-focus-input",[],["type","text","id","entry-title","placeholder","Your Post Title","value",["subexpr","@mut",[["get","model.titleScratch"]],[]],"tabindex","1","focus",["subexpr","@mut",[["get","shouldFocusTitle"]],[]]]]
+            ["inline","gh-trim-focus-input",[],["type","text","id","entry-title","placeholder","博文标题","value",["subexpr","@mut",[["get","model.titleScratch"]],[]],"tabindex","1","focus",["subexpr","@mut",[["get","shouldFocusTitle"]],[]]]]
           ],
           locals: [],
           templates: []
@@ -14863,7 +15643,7 @@ define('ghost/templates/editor/edit', ['exports'], function (exports) {
           dom.appendChild(el3, el4);
           var el4 = dom.createElement("span");
           dom.setAttribute(el4,"class","desktop-tabs");
-          var el5 = dom.createTextNode("Preview");
+          var el5 = dom.createTextNode("预览");
           dom.appendChild(el4, el5);
           dom.appendChild(el3, el4);
           var el4 = dom.createTextNode("\n                ");
@@ -14881,7 +15661,7 @@ define('ghost/templates/editor/edit', ['exports'], function (exports) {
           dom.appendChild(el4, el5);
           var el5 = dom.createElement("a");
           dom.setAttribute(el5,"href","#");
-          var el6 = dom.createTextNode("Preview");
+          var el6 = dom.createTextNode("预览");
           dom.appendChild(el5, el6);
           dom.appendChild(el4, el5);
           var el5 = dom.createTextNode("\n                ");
@@ -15297,6 +16077,90 @@ define('ghost/templates/error', ['exports'], function (exports) {
   }()));
 
 });
+define('ghost/templates/forgotten', ['exports'], function (exports) {
+
+  'use strict';
+
+  exports['default'] = Ember.HTMLBars.template((function() {
+    return {
+      meta: {
+        "revision": "Ember@1.13.2",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 10,
+            "column": 0
+          }
+        },
+        "moduleName": "ghost/templates/forgotten.hbs"
+      },
+      arity: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      buildFragment: function buildFragment(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createElement("section");
+        dom.setAttribute(el1,"class","forgotten-box js-forgotten-box fade-in");
+        var el2 = dom.createTextNode("\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("form");
+        dom.setAttribute(el2,"id","forgotten");
+        dom.setAttribute(el2,"class","forgotten-form");
+        dom.setAttribute(el2,"method","post");
+        dom.setAttribute(el2,"novalidate","novalidate");
+        var el3 = dom.createTextNode("\n        ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("div");
+        dom.setAttribute(el3,"class","email-wrap");
+        var el4 = dom.createTextNode("\n            ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n        ");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n        ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("button");
+        dom.setAttribute(el3,"class","btn btn-blue");
+        dom.setAttribute(el3,"type","submit");
+        var el4 = dom.createTextNode("发送新密码");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+        var element0 = dom.childAt(fragment, [0, 1]);
+        var element1 = dom.childAt(element0, [3]);
+        var morphs = new Array(3);
+        morphs[0] = dom.createMorphAt(dom.childAt(element0, [1]),1,1);
+        morphs[1] = dom.createAttrMorph(element1, 'disabled');
+        morphs[2] = dom.createElementMorph(element1);
+        return morphs;
+      },
+      statements: [
+        ["inline","gh-trim-focus-input",[],["value",["subexpr","@mut",[["get","email"]],[]],"class","email","type","email","placeholder","邮箱地址","name","email","autofocus","autofocus","autocapitalize","off","autocorrect","off"]],
+        ["attribute","disabled",["get","submitting"]],
+        ["element","action",["submit"],[]]
+      ],
+      locals: [],
+      templates: []
+    };
+  }()));
+
+});
 define('ghost/templates/modals/copy-html', ['exports'], function (exports) {
 
   'use strict';
@@ -15377,7 +16241,7 @@ define('ghost/templates/modals/copy-html', ['exports'], function (exports) {
         return morphs;
       },
       statements: [
-        ["block","gh-modal-dialog",[],["action","closeModal","showClose",true,"type","action","title","Generated HTML","confirm",["subexpr","@mut",[["get","confirm"]],[]],"class","copy-html"],0,null]
+        ["block","gh-modal-dialog",[],["action","closeModal","showClose",true,"type","action","title","生成的 HTML 文档","confirm",["subexpr","@mut",[["get","confirm"]],[]],"class","copy-html"],0,null]
       ],
       locals: [],
       templates: [child0]
@@ -15415,11 +16279,11 @@ define('ghost/templates/modals/delete-all', ['exports'], function (exports) {
           var el1 = dom.createTextNode("\n    ");
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("p");
-          var el2 = dom.createTextNode("This is permanent! No backups, no restores, no magic undo button. ");
+          var el2 = dom.createTextNode("此操作不可逆！没有备份、不能恢复、没有后悔药。 ");
           dom.appendChild(el1, el2);
           var el2 = dom.createElement("br");
           dom.appendChild(el1, el2);
-          var el2 = dom.createTextNode(" We warned you, ok?");
+          var el2 = dom.createTextNode(" 这是最后警告！小心！");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n\n");
@@ -15467,7 +16331,7 @@ define('ghost/templates/modals/delete-all', ['exports'], function (exports) {
         return morphs;
       },
       statements: [
-        ["block","gh-modal-dialog",[],["action","closeModal","type","action","style","wide","title","Would you really like to delete all content from your blog?","confirm",["subexpr","@mut",[["get","confirm"]],[]]],0,null]
+        ["block","gh-modal-dialog",[],["action","closeModal","type","action","style","wide","title","是否真的要删除所有博文内容？","confirm",["subexpr","@mut",[["get","confirm"]],[]]],0,null]
       ],
       locals: [],
       templates: [child0]
@@ -15505,21 +16369,21 @@ define('ghost/templates/modals/delete-post', ['exports'], function (exports) {
           var el1 = dom.createTextNode("\n    ");
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("p");
-          var el2 = dom.createTextNode("You're about to delete \"");
+          var el2 = dom.createTextNode("即将删除 \"");
           dom.appendChild(el1, el2);
           var el2 = dom.createElement("strong");
           var el3 = dom.createComment("");
           dom.appendChild(el2, el3);
           dom.appendChild(el1, el2);
-          var el2 = dom.createTextNode("\".");
+          var el2 = dom.createTextNode("\"。");
           dom.appendChild(el1, el2);
           var el2 = dom.createElement("br");
           dom.appendChild(el1, el2);
-          var el2 = dom.createTextNode("This is permanent! No backups, no restores, no magic undo button. ");
+          var el2 = dom.createTextNode("此操作不可逆！没有备份、不能恢复、没有后悔药。 ");
           dom.appendChild(el1, el2);
           var el2 = dom.createElement("br");
           dom.appendChild(el1, el2);
-          var el2 = dom.createTextNode(" We warned you, ok?");
+          var el2 = dom.createTextNode(" 这是最后警告！小心！");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n\n");
@@ -15571,7 +16435,7 @@ define('ghost/templates/modals/delete-post', ['exports'], function (exports) {
         return morphs;
       },
       statements: [
-        ["block","gh-modal-dialog",[],["action","closeModal","showClose",true,"type","action","style","wide","title","Are you sure you want to delete this post?","confirm",["subexpr","@mut",[["get","confirm"]],[]]],0,null]
+        ["block","gh-modal-dialog",[],["action","closeModal","showClose",true,"type","action","style","wide","title","确认要删除此博文吗？","confirm",["subexpr","@mut",[["get","confirm"]],[]]],0,null]
       ],
       locals: [],
       templates: [child0]
@@ -15610,31 +16474,31 @@ define('ghost/templates/modals/delete-tag', ['exports'], function (exports) {
             var el1 = dom.createTextNode("        ");
             dom.appendChild(el0, el1);
             var el1 = dom.createElement("strong");
-            var el2 = dom.createTextNode("WARNING:");
+            var el2 = dom.createTextNode("警告：");
             dom.appendChild(el1, el2);
             dom.appendChild(el0, el1);
             var el1 = dom.createTextNode(" ");
             dom.appendChild(el0, el1);
             var el1 = dom.createElement("span");
             dom.setAttribute(el1,"class","red");
-            var el2 = dom.createTextNode("This tag is attached to ");
+            var el2 = dom.createTextNode("共有 ");
             dom.appendChild(el1, el2);
             var el2 = dom.createComment("");
             dom.appendChild(el1, el2);
-            var el2 = dom.createTextNode(" ");
+            var el2 = dom.createTextNode(" 篇 ");
             dom.appendChild(el1, el2);
             var el2 = dom.createComment("");
             dom.appendChild(el1, el2);
-            var el2 = dom.createTextNode(".");
+            var el2 = dom.createTextNode(" 被标记为此标签。");
             dom.appendChild(el1, el2);
             dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode(" You're about to delete \"");
+            var el1 = dom.createTextNode(" 你将要删除的标签是 \"");
             dom.appendChild(el0, el1);
             var el1 = dom.createElement("strong");
             var el2 = dom.createComment("");
             dom.appendChild(el1, el2);
             dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode("\". This is permanent! No backups, no restores, no magic undo button. We warned you, ok?\n");
+            var el1 = dom.createTextNode("\"。此删除操作不可逆！没有备份、不可恢复。确定要删除吗？\n");
             dom.appendChild(el0, el1);
             return el0;
           },
@@ -15680,16 +16544,16 @@ define('ghost/templates/modals/delete-tag', ['exports'], function (exports) {
             var el1 = dom.createTextNode("        ");
             dom.appendChild(el0, el1);
             var el1 = dom.createElement("strong");
-            var el2 = dom.createTextNode("WARNING:");
+            var el2 = dom.createTextNode("警告：");
             dom.appendChild(el1, el2);
             dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode(" You're about to delete \"");
+            var el1 = dom.createTextNode(" 你将要删除的标签是 \"");
             dom.appendChild(el0, el1);
             var el1 = dom.createElement("strong");
             var el2 = dom.createComment("");
             dom.appendChild(el1, el2);
             dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode("\". This is permanent! No backups, no restores, no magic undo button. We warned you, ok?\n");
+            var el1 = dom.createTextNode("\"。此删除操作不可逆！没有备份、不可恢复。确定要删除吗？\n");
             dom.appendChild(el0, el1);
             return el0;
           },
@@ -15778,7 +16642,7 @@ define('ghost/templates/modals/delete-tag', ['exports'], function (exports) {
         return morphs;
       },
       statements: [
-        ["block","gh-modal-dialog",[],["action","closeModal","showClose",true,"type","action","style","wide","title","Are you sure you want to delete this tag?","confirm",["subexpr","@mut",[["get","confirm"]],[]]],0,null]
+        ["block","gh-modal-dialog",[],["action","closeModal","showClose",true,"type","action","style","wide","title","是否确定删除此标签？","confirm",["subexpr","@mut",[["get","confirm"]],[]]],0,null]
       ],
       locals: [],
       templates: [child0]
@@ -15818,25 +16682,25 @@ define('ghost/templates/modals/delete-user', ['exports'], function (exports) {
               var el1 = dom.createTextNode("            ");
               dom.appendChild(el0, el1);
               var el1 = dom.createElement("strong");
-              var el2 = dom.createTextNode("WARNING:");
+              var el2 = dom.createTextNode("警告：");
               dom.appendChild(el1, el2);
               dom.appendChild(el0, el1);
               var el1 = dom.createTextNode(" ");
               dom.appendChild(el0, el1);
               var el1 = dom.createElement("span");
               dom.setAttribute(el1,"class","red");
-              var el2 = dom.createTextNode("This user is the author of ");
+              var el2 = dom.createTextNode("T此用户是 ");
               dom.appendChild(el1, el2);
               var el2 = dom.createComment("");
               dom.appendChild(el1, el2);
-              var el2 = dom.createTextNode(" ");
+              var el2 = dom.createTextNode(" 篇 ");
               dom.appendChild(el1, el2);
               var el2 = dom.createComment("");
               dom.appendChild(el1, el2);
-              var el2 = dom.createTextNode(".");
+              var el2 = dom.createTextNode(" 的作者。");
               dom.appendChild(el1, el2);
               dom.appendChild(el0, el1);
-              var el1 = dom.createTextNode(" All posts and user data will be deleted. There is no way to recover this.\n");
+              var el1 = dom.createTextNode(" 所有和此用户相关联的数据都将被删除。没有备份数据可以恢复！\n");
               dom.appendChild(el0, el1);
               return el0;
             },
@@ -15880,10 +16744,10 @@ define('ghost/templates/modals/delete-user', ['exports'], function (exports) {
               var el1 = dom.createTextNode("            ");
               dom.appendChild(el0, el1);
               var el1 = dom.createElement("strong");
-              var el2 = dom.createTextNode("WARNING:");
+              var el2 = dom.createTextNode("警告：");
               dom.appendChild(el1, el2);
               dom.appendChild(el0, el1);
-              var el1 = dom.createTextNode(" All user data will be deleted. There is no way to recover this.\n");
+              var el1 = dom.createTextNode(" 所有和此用户相关联的数据都将被删除。没有备份数据可以恢复！\n");
               dom.appendChild(el0, el1);
               return el0;
             },
@@ -16008,7 +16872,7 @@ define('ghost/templates/modals/delete-user', ['exports'], function (exports) {
         return morphs;
       },
       statements: [
-        ["block","gh-modal-dialog",[],["action","closeModal","showClose",true,"type","action","style","wide","title","Are you sure you want to delete this user?","confirm",["subexpr","@mut",[["get","confirm"]],[]]],0,null]
+        ["block","gh-modal-dialog",[],["action","closeModal","showClose",true,"type","action","style","wide","title","是否真的要删除此用户？","confirm",["subexpr","@mut",[["get","confirm"]],[]]],0,null]
       ],
       locals: [],
       templates: [child0]
@@ -16048,7 +16912,7 @@ define('ghost/templates/modals/invite-new-user', ['exports'], function (exports)
             dom.appendChild(el0, el1);
             var el1 = dom.createElement("label");
             dom.setAttribute(el1,"for","new-user-email");
-            var el2 = dom.createTextNode("Email Address");
+            var el2 = dom.createTextNode("邮箱地址");
             dom.appendChild(el1, el2);
             dom.appendChild(el0, el1);
             var el1 = dom.createTextNode("\n            ");
@@ -16070,7 +16934,7 @@ define('ghost/templates/modals/invite-new-user', ['exports'], function (exports)
             return morphs;
           },
           statements: [
-            ["inline","gh-input",[],["enter","confirmAccept","class","email","id","new-user-email","type","email","placeholder","Email Address","name","email","autofocus","autofocus","autocapitalize","off","autocorrect","off","value",["subexpr","@mut",[["get","email"]],[]],"focusOut",["subexpr","action",["validate","email"],[]]]],
+            ["inline","gh-input",[],["enter","confirmAccept","class","email","id","new-user-email","type","email","placeholder","被邀请用户的邮箱地址","name","email","autofocus","autofocus","autocapitalize","off","autocorrect","off","value",["subexpr","@mut",[["get","email"]],[]],"focusOut",["subexpr","action",["validate","email"],[]]]],
             ["inline","gh-error-message",[],["errors",["subexpr","@mut",[["get","errors"]],[]],"property","email"]]
           ],
           locals: [],
@@ -16113,7 +16977,7 @@ define('ghost/templates/modals/invite-new-user', ['exports'], function (exports)
           dom.appendChild(el2, el3);
           var el3 = dom.createElement("label");
           dom.setAttribute(el3,"for","new-user-role");
-          var el4 = dom.createTextNode("Role");
+          var el4 = dom.createTextNode("角色/权限");
           dom.appendChild(el3, el4);
           dom.appendChild(el2, el3);
           var el3 = dom.createTextNode("\n            ");
@@ -16186,7 +17050,7 @@ define('ghost/templates/modals/invite-new-user', ['exports'], function (exports)
         return morphs;
       },
       statements: [
-        ["block","gh-modal-dialog",[],["action","closeModal","showClose",true,"type","action","title","Invite a New User","confirm",["subexpr","@mut",[["get","confirm"]],[]],"class","invite-new-user"],0,null]
+        ["block","gh-modal-dialog",[],["action","closeModal","showClose",true,"type","action","title","邀请新用户","confirm",["subexpr","@mut",[["get","confirm"]],[]],"class","invite-new-user"],0,null]
       ],
       locals: [],
       templates: [child0]
@@ -16210,7 +17074,7 @@ define('ghost/templates/modals/leave-editor', ['exports'], function (exports) {
               "column": 0
             },
             "end": {
-              "line": 9,
+              "line": 6,
               "column": 0
             }
           },
@@ -16224,13 +17088,7 @@ define('ghost/templates/modals/leave-editor', ['exports'], function (exports) {
           var el1 = dom.createTextNode("\n    ");
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("p");
-          var el2 = dom.createTextNode("Hey there! It looks like you're in the middle of writing something and you haven't saved all of your\n    content.");
-          dom.appendChild(el1, el2);
-          dom.appendChild(el0, el1);
-          var el1 = dom.createTextNode("\n\n    ");
-          dom.appendChild(el0, el1);
-          var el1 = dom.createElement("p");
-          var el2 = dom.createTextNode("Save before you go!");
+          var el2 = dom.createTextNode("嘿，同学！好像你的博文还在创作中啊，而且没有保存，是否保存个先？");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n\n");
@@ -16255,7 +17113,7 @@ define('ghost/templates/modals/leave-editor', ['exports'], function (exports) {
             "column": 0
           },
           "end": {
-            "line": 10,
+            "line": 7,
             "column": 0
           }
         },
@@ -16278,7 +17136,7 @@ define('ghost/templates/modals/leave-editor', ['exports'], function (exports) {
         return morphs;
       },
       statements: [
-        ["block","gh-modal-dialog",[],["action","closeModal","showClose",true,"type","action","style","wide","title","Are you sure you want to leave this page?","confirm",["subexpr","@mut",[["get","confirm"]],[]]],0,null]
+        ["block","gh-modal-dialog",[],["action","closeModal","showClose",true,"type","action","style","wide","title","你确定要离开当前页面吗？","confirm",["subexpr","@mut",[["get","confirm"]],[]]],0,null]
       ],
       locals: [],
       templates: [child0]
@@ -16336,13 +17194,13 @@ define('ghost/templates/modals/markdown', ['exports'], function (exports) {
           var el5 = dom.createTextNode("\n                ");
           dom.appendChild(el4, el5);
           var el5 = dom.createElement("th");
-          var el6 = dom.createTextNode("Result");
+          var el6 = dom.createTextNode("效果");
           dom.appendChild(el5, el6);
           dom.appendChild(el4, el5);
           var el5 = dom.createTextNode("\n                ");
           dom.appendChild(el4, el5);
           var el5 = dom.createElement("th");
-          var el6 = dom.createTextNode("Shortcut");
+          var el6 = dom.createTextNode("快捷键");
           dom.appendChild(el5, el6);
           dom.appendChild(el4, el5);
           var el5 = dom.createTextNode("\n            ");
@@ -16657,15 +17515,15 @@ define('ghost/templates/modals/markdown', ['exports'], function (exports) {
           var el3 = dom.createTextNode("\n        ");
           dom.appendChild(el2, el3);
           dom.appendChild(el1, el2);
-          var el2 = dom.createTextNode("\n        For further Markdown syntax reference: ");
+          var el2 = dom.createTextNode("\n        如需了解更多 Markdown 语法，请查看 ");
           dom.appendChild(el1, el2);
           var el2 = dom.createElement("a");
-          dom.setAttribute(el2,"href","http://support.ghost.org/markdown-guide/");
+          dom.setAttribute(el2,"href","http://www.ghostchina.com/markdown-guide/");
           dom.setAttribute(el2,"target","_blank");
-          var el3 = dom.createTextNode("Markdown Documentation");
+          var el3 = dom.createTextNode("Markdown 语法指南");
           dom.appendChild(el2, el3);
           dom.appendChild(el1, el2);
-          var el2 = dom.createTextNode("\n    ");
+          var el2 = dom.createTextNode("。\n    ");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n");
@@ -16713,7 +17571,7 @@ define('ghost/templates/modals/markdown', ['exports'], function (exports) {
         return morphs;
       },
       statements: [
-        ["block","gh-modal-dialog",[],["action","closeModal","showClose",true,"style","wide","title","Markdown Help"],0,null]
+        ["block","gh-modal-dialog",[],["action","closeModal","showClose",true,"style","wide","title","Markdown 手册"],0,null]
       ],
       locals: [],
       templates: [child0]
@@ -16739,7 +17597,7 @@ define('ghost/templates/modals/signin', ['exports'], function (exports) {
               },
               "end": {
                 "line": 8,
-                "column": 127
+                "column": 123
               }
             },
             "moduleName": "ghost/templates/modals/signin.hbs"
@@ -16749,7 +17607,7 @@ define('ghost/templates/modals/signin', ['exports'], function (exports) {
           hasRendered: false,
           buildFragment: function buildFragment(dom) {
             var el0 = dom.createDocumentFragment();
-            var el1 = dom.createTextNode("Log in");
+            var el1 = dom.createTextNode("登录");
             dom.appendChild(el0, el1);
             return el0;
           },
@@ -16821,7 +17679,7 @@ define('ghost/templates/modals/signin', ['exports'], function (exports) {
         },
         statements: [
           ["element","action",["validateAndAuthenticate"],["on","submit"]],
-          ["inline","input",[],["class","gh-input password","type","password","placeholder","Password","name","password","value",["subexpr","@mut",[["get","password"]],[]]]],
+          ["inline","input",[],["class","gh-input password","type","password","placeholder","密码","name","password","value",["subexpr","@mut",[["get","password"]],[]]]],
           ["block","gh-spin-button",[],["class","btn btn-blue","type","submit","action","validateAndAuthenticate","submitting",["subexpr","@mut",[["get","submitting"]],[]]],0,null]
         ],
         locals: [],
@@ -16899,7 +17757,7 @@ define('ghost/templates/modals/transfer-owner', ['exports'], function (exports) 
           var el1 = dom.createTextNode("\n    ");
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("p");
-          var el2 = dom.createTextNode("Are you sure you want to transfer the ownership of this blog? You will not be able to undo this action.");
+          var el2 = dom.createTextNode("你确定要将此博客的所有权转给其他人吗？此操作是不可逆的。");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n\n");
@@ -16947,7 +17805,7 @@ define('ghost/templates/modals/transfer-owner', ['exports'], function (exports) 
         return morphs;
       },
       statements: [
-        ["block","gh-modal-dialog",[],["action","closeModal","showClose",true,"type","action","style","wide","title","Transfer Ownership","confirm",["subexpr","@mut",[["get","confirm"]],[]]],0,null]
+        ["block","gh-modal-dialog",[],["action","closeModal","showClose",true,"type","action","style","wide","title","转移博客所有权","confirm",["subexpr","@mut",[["get","confirm"]],[]]],0,null]
       ],
       locals: [],
       templates: [child0]
@@ -17098,7 +17956,7 @@ define('ghost/templates/post-settings-menu', ['exports'], function (exports) {
             var el1 = dom.createElement("a");
             dom.setAttribute(el1,"class","post-view-link");
             dom.setAttribute(el1,"target","_blank");
-            var el2 = dom.createTextNode("\n                    View post ");
+            var el2 = dom.createTextNode("\n                    查看博文 ");
             dom.appendChild(el1, el2);
             var el2 = dom.createElement("i");
             dom.setAttribute(el2,"class","icon-external");
@@ -17150,7 +18008,7 @@ define('ghost/templates/post-settings-menu', ['exports'], function (exports) {
             var el1 = dom.createElement("a");
             dom.setAttribute(el1,"class","post-view-link");
             dom.setAttribute(el1,"target","_blank");
-            var el2 = dom.createTextNode("\n                    Preview ");
+            var el2 = dom.createTextNode("\n                    预览 ");
             dom.appendChild(el1, el2);
             var el2 = dom.createElement("i");
             dom.setAttribute(el2,"class","icon-external");
@@ -17201,7 +18059,7 @@ define('ghost/templates/post-settings-menu', ['exports'], function (exports) {
             dom.appendChild(el0, el1);
             var el1 = dom.createElement("label");
             dom.setAttribute(el1,"for","post-setting-date");
-            var el2 = dom.createTextNode("Publish Date");
+            var el2 = dom.createTextNode("发布日期");
             dom.appendChild(el1, el2);
             dom.appendChild(el0, el1);
             var el1 = dom.createTextNode("\n                ");
@@ -17267,7 +18125,7 @@ define('ghost/templates/post-settings-menu', ['exports'], function (exports) {
             dom.appendChild(el1, el2);
             var el2 = dom.createElement("label");
             dom.setAttribute(el2,"for","author-list");
-            var el3 = dom.createTextNode("Author");
+            var el3 = dom.createTextNode("作者");
             dom.appendChild(el2, el3);
             dom.appendChild(el1, el2);
             var el2 = dom.createTextNode("\n                ");
@@ -17337,13 +18195,13 @@ define('ghost/templates/post-settings-menu', ['exports'], function (exports) {
             var el2 = dom.createTextNode("\n                        ");
             dom.appendChild(el1, el2);
             var el2 = dom.createElement("b");
-            var el3 = dom.createTextNode("Meta Data");
+            var el3 = dom.createTextNode("搜索引擎优化");
             dom.appendChild(el2, el3);
             dom.appendChild(el1, el2);
             var el2 = dom.createTextNode("\n                        ");
             dom.appendChild(el1, el2);
             var el2 = dom.createElement("span");
-            var el3 = dom.createTextNode("Extra content for SEO and social media.");
+            var el3 = dom.createTextNode("优化在搜索引擎中的呈现效果，提高访问量。");
             dom.appendChild(el2, el3);
             dom.appendChild(el1, el2);
             var el2 = dom.createTextNode("\n                    ");
@@ -17394,7 +18252,7 @@ define('ghost/templates/post-settings-menu', ['exports'], function (exports) {
                 dom.appendChild(el0, el1);
                 var el1 = dom.createElement("label");
                 dom.setAttribute(el1,"for","meta-title");
-                var el2 = dom.createTextNode("Meta Title");
+                var el2 = dom.createTextNode("优化标题");
                 dom.appendChild(el1, el2);
                 dom.appendChild(el0, el1);
                 var el1 = dom.createTextNode("\n                ");
@@ -17404,13 +18262,13 @@ define('ghost/templates/post-settings-menu', ['exports'], function (exports) {
                 var el1 = dom.createTextNode("\n                ");
                 dom.appendChild(el0, el1);
                 var el1 = dom.createElement("p");
-                var el2 = dom.createTextNode("Recommended: ");
+                var el2 = dom.createTextNode("建议：");
                 dom.appendChild(el1, el2);
                 var el2 = dom.createElement("b");
                 var el3 = dom.createTextNode("70");
                 dom.appendChild(el2, el3);
                 dom.appendChild(el1, el2);
-                var el2 = dom.createTextNode(" characters. You’ve used ");
+                var el2 = dom.createTextNode(" 个字符以内。已输入的字符数是 ");
                 dom.appendChild(el1, el2);
                 var el2 = dom.createComment("");
                 dom.appendChild(el1, el2);
@@ -17465,7 +18323,7 @@ define('ghost/templates/post-settings-menu', ['exports'], function (exports) {
                 dom.appendChild(el0, el1);
                 var el1 = dom.createElement("label");
                 dom.setAttribute(el1,"for","meta-description");
-                var el2 = dom.createTextNode("Meta Description");
+                var el2 = dom.createTextNode("优化摘要");
                 dom.appendChild(el1, el2);
                 dom.appendChild(el0, el1);
                 var el1 = dom.createTextNode("\n                ");
@@ -17475,13 +18333,13 @@ define('ghost/templates/post-settings-menu', ['exports'], function (exports) {
                 var el1 = dom.createTextNode("\n                ");
                 dom.appendChild(el0, el1);
                 var el1 = dom.createElement("p");
-                var el2 = dom.createTextNode("Recommended: ");
+                var el2 = dom.createTextNode("建议：");
                 dom.appendChild(el1, el2);
                 var el2 = dom.createElement("b");
                 var el3 = dom.createTextNode("156");
                 dom.appendChild(el2, el3);
                 dom.appendChild(el1, el2);
-                var el2 = dom.createTextNode(" characters. You’ve used ");
+                var el2 = dom.createTextNode(" 个字符以内。已输入的字符数是 ");
                 dom.appendChild(el1, el2);
                 var el2 = dom.createComment("");
                 dom.appendChild(el1, el2);
@@ -17541,14 +18399,14 @@ define('ghost/templates/post-settings-menu', ['exports'], function (exports) {
               dom.setAttribute(el2,"class","back icon-arrow-left settings-menu-header-action");
               var el3 = dom.createElement("span");
               dom.setAttribute(el3,"class","hidden");
-              var el4 = dom.createTextNode("Back");
+              var el4 = dom.createTextNode("返回");
               dom.appendChild(el3, el4);
               dom.appendChild(el2, el3);
               dom.appendChild(el1, el2);
               var el2 = dom.createTextNode("\n            ");
               dom.appendChild(el1, el2);
               var el2 = dom.createElement("h4");
-              var el3 = dom.createTextNode("Meta Data");
+              var el3 = dom.createTextNode("搜索引擎优化");
               dom.appendChild(el2, el3);
               dom.appendChild(el1, el2);
               var el2 = dom.createTextNode("\n            ");
@@ -17581,7 +18439,7 @@ define('ghost/templates/post-settings-menu', ['exports'], function (exports) {
               var el4 = dom.createTextNode("\n                ");
               dom.appendChild(el3, el4);
               var el4 = dom.createElement("label");
-              var el5 = dom.createTextNode("Search Engine Result Preview");
+              var el5 = dom.createTextNode("搜索引擎呈现效果预览");
               dom.appendChild(el4, el5);
               dom.appendChild(el3, el4);
               var el4 = dom.createTextNode("\n                ");
@@ -17629,19 +18487,17 @@ define('ghost/templates/post-settings-menu', ['exports'], function (exports) {
               var element0 = dom.childAt(fragment, [1, 1]);
               var element1 = dom.childAt(fragment, [3, 1]);
               var element2 = dom.childAt(element1, [5, 3]);
-              var morphs = new Array(7);
+              var morphs = new Array(6);
               morphs[0] = dom.createElementMorph(element0);
-              morphs[1] = dom.createElementMorph(element1);
-              morphs[2] = dom.createMorphAt(element1,1,1);
-              morphs[3] = dom.createMorphAt(element1,3,3);
-              morphs[4] = dom.createMorphAt(dom.childAt(element2, [1]),0,0);
-              morphs[5] = dom.createMorphAt(dom.childAt(element2, [3]),0,0);
-              morphs[6] = dom.createMorphAt(dom.childAt(element2, [5]),0,0);
+              morphs[1] = dom.createMorphAt(element1,1,1);
+              morphs[2] = dom.createMorphAt(element1,3,3);
+              morphs[3] = dom.createMorphAt(dom.childAt(element2, [1]),0,0);
+              morphs[4] = dom.createMorphAt(dom.childAt(element2, [3]),0,0);
+              morphs[5] = dom.createMorphAt(dom.childAt(element2, [5]),0,0);
               return morphs;
             },
             statements: [
               ["element","action",["closeSubview"],[]],
-              ["element","action",["discardEnter"],["on","submit"]],
               ["block","gh-form-group",[],["errors",["subexpr","@mut",[["get","model.errors"]],[]],"property","meta_title"],0,null],
               ["block","gh-form-group",[],["errors",["subexpr","@mut",[["get","model.errors"]],[]],"property","meta_description"],1,null],
               ["content","seoTitle"],
@@ -17724,7 +18580,7 @@ define('ghost/templates/post-settings-menu', ['exports'], function (exports) {
           var el4 = dom.createTextNode("\n            ");
           dom.appendChild(el3, el4);
           var el4 = dom.createElement("h4");
-          var el5 = dom.createTextNode("Post Settings");
+          var el5 = dom.createTextNode("博文设置");
           dom.appendChild(el4, el5);
           dom.appendChild(el3, el4);
           var el4 = dom.createTextNode("\n            ");
@@ -17733,7 +18589,7 @@ define('ghost/templates/post-settings-menu', ['exports'], function (exports) {
           dom.setAttribute(el4,"class","close icon-x settings-menu-header-action");
           var el5 = dom.createElement("span");
           dom.setAttribute(el5,"class","hidden");
-          var el6 = dom.createTextNode("Close");
+          var el6 = dom.createTextNode("关闭");
           dom.appendChild(el5, el6);
           dom.appendChild(el4, el5);
           dom.appendChild(el3, el4);
@@ -17759,7 +18615,7 @@ define('ghost/templates/post-settings-menu', ['exports'], function (exports) {
           dom.appendChild(el5, el6);
           var el6 = dom.createElement("label");
           dom.setAttribute(el6,"for","url");
-          var el7 = dom.createTextNode("Post URL");
+          var el7 = dom.createTextNode("博文地址");
           dom.appendChild(el6, el7);
           dom.appendChild(el5, el6);
           var el6 = dom.createTextNode("\n");
@@ -17796,7 +18652,7 @@ define('ghost/templates/post-settings-menu', ['exports'], function (exports) {
           dom.appendChild(el5, el6);
           var el6 = dom.createElement("label");
           dom.setAttribute(el6,"for","tag-input");
-          var el7 = dom.createTextNode("Tags");
+          var el7 = dom.createTextNode("标签");
           dom.appendChild(el6, el7);
           dom.appendChild(el5, el6);
           var el6 = dom.createTextNode("\n                ");
@@ -17842,7 +18698,7 @@ define('ghost/templates/post-settings-menu', ['exports'], function (exports) {
           var el7 = dom.createTextNode("\n                    ");
           dom.appendChild(el6, el7);
           var el7 = dom.createElement("p");
-          var el8 = dom.createTextNode("Turn this post into a static page");
+          var el8 = dom.createTextNode("设置为独立页面（不出现在博文列表中）");
           dom.appendChild(el7, el8);
           dom.appendChild(el6, el7);
           var el7 = dom.createTextNode("\n                ");
@@ -17865,7 +18721,7 @@ define('ghost/templates/post-settings-menu', ['exports'], function (exports) {
           var el7 = dom.createTextNode("\n                    ");
           dom.appendChild(el6, el7);
           var el7 = dom.createElement("p");
-          var el8 = dom.createTextNode("Feature this post");
+          var el8 = dom.createTextNode("推荐此博文（可以设置特殊的展示效果）");
           dom.appendChild(el7, el8);
           dom.appendChild(el6, el7);
           var el7 = dom.createTextNode("\n                ");
@@ -17933,7 +18789,7 @@ define('ghost/templates/post-settings-menu', ['exports'], function (exports) {
         statements: [
           ["attribute","class",["concat",[["subexpr","if",[["get","isViewingSubview"],"settings-menu-pane-out-left","settings-menu-pane-in"],[]]," settings-menu settings-menu-pane"]]],
           ["element","action",["closeMenus"],[]],
-          ["inline","gh-uploader",[],["uploaded","setCoverImage","canceled","clearCoverImage","description","Add post image","image",["subexpr","@mut",[["get","model.image"]],[]],"uploaderReference",["subexpr","@mut",[["get","uploaderReference"]],[]],"tagName","section"]],
+          ["inline","gh-uploader",[],["uploaded","setCoverImage","canceled","clearCoverImage","description","为博文设置图片","image",["subexpr","@mut",[["get","model.image"]],[]],"uploaderReference",["subexpr","@mut",[["get","uploaderReference"]],[]],"tagName","section"]],
           ["block","if",[["get","model.isPublished"]],[],0,1],
           ["inline","gh-input",[],["class","post-setting-slug","id","url","value",["subexpr","@mut",[["get","slugValue"]],[]],"name","post-setting-slug","focus-out","updateSlug","selectOnClick","true","stopEnterKeyDownPropagation","true"]],
           ["inline","gh-url-preview",[],["slug",["subexpr","@mut",[["get","slugValue"]],[]],"tagName","p","classNames","description"]],
@@ -18011,7 +18867,7 @@ define('ghost/templates/posts', ['exports'], function (exports) {
               },
               "end": {
                 "line": 3,
-                "column": 74
+                "column": 71
               }
             },
             "moduleName": "ghost/templates/posts.hbs"
@@ -18022,7 +18878,7 @@ define('ghost/templates/posts', ['exports'], function (exports) {
           buildFragment: function buildFragment(dom) {
             var el0 = dom.createDocumentFragment();
             var el1 = dom.createElement("span");
-            var el2 = dom.createTextNode("Content");
+            var el2 = dom.createTextNode("博文列表");
             dom.appendChild(el1, el2);
             dom.appendChild(el0, el1);
             return el0;
@@ -18047,7 +18903,7 @@ define('ghost/templates/posts', ['exports'], function (exports) {
               },
               "end": {
                 "line": 5,
-                "column": 80
+                "column": 72
               }
             },
             "moduleName": "ghost/templates/posts.hbs"
@@ -18057,7 +18913,7 @@ define('ghost/templates/posts', ['exports'], function (exports) {
           hasRendered: false,
           buildFragment: function buildFragment(dom) {
             var el0 = dom.createDocumentFragment();
-            var el1 = dom.createTextNode("New Post");
+            var el1 = dom.createTextNode("新建博文");
             dom.appendChild(el0, el1);
             return el0;
           },
@@ -18100,7 +18956,7 @@ define('ghost/templates/posts', ['exports'], function (exports) {
                       dom.appendChild(el0, el1);
                       var el1 = dom.createElement("span");
                       dom.setAttribute(el1,"class","page");
-                      var el2 = dom.createTextNode("Page");
+                      var el2 = dom.createTextNode("独立页面");
                       dom.appendChild(el1, el2);
                       dom.appendChild(el0, el1);
                       var el1 = dom.createTextNode("\n");
@@ -18141,7 +18997,7 @@ define('ghost/templates/posts', ['exports'], function (exports) {
                       dom.appendChild(el0, el1);
                       var el1 = dom.createElement("time");
                       dom.setAttribute(el1,"class","date published");
-                      var el2 = dom.createTextNode("\n                                                Published ");
+                      var el2 = dom.createTextNode("\n                                                发布于 ");
                       dom.appendChild(el1, el2);
                       var el2 = dom.createComment("");
                       dom.appendChild(el1, el2);
@@ -18232,7 +19088,7 @@ define('ghost/templates/posts', ['exports'], function (exports) {
                     dom.appendChild(el0, el1);
                     var el1 = dom.createElement("span");
                     dom.setAttribute(el1,"class","draft");
-                    var el2 = dom.createTextNode("Draft");
+                    var el2 = dom.createTextNode("草稿");
                     dom.appendChild(el1, el2);
                     dom.appendChild(el0, el1);
                     var el1 = dom.createTextNode("\n");
@@ -18373,7 +19229,7 @@ define('ghost/templates/posts', ['exports'], function (exports) {
                 return morphs;
               },
               statements: [
-                ["block","link-to",[["get","component.viewOrEdit"],["get","post.id"]],["class","permalink","title","Edit this post"],0,null]
+                ["block","link-to",[["get","component.viewOrEdit"],["get","post.id"]],["class","permalink","title","编辑此博文"],0,null]
               ],
               locals: ["component"],
               templates: [child0]
@@ -18554,7 +19410,7 @@ define('ghost/templates/posts', ['exports'], function (exports) {
         },
         statements: [
           ["block","gh-view-title",[],["openMobileMenu","openMobileMenu"],0,null],
-          ["block","link-to",["editor.new"],["class","btn btn-green","title","New Post"],1,null],
+          ["block","link-to",["editor.new"],["class","btn btn-green","title","新建博文"],1,null],
           ["attribute","class",["concat",["content-list js-content-list ",["subexpr","if",[["get","postListFocused"],"keyboard-focused"],[]]]]],
           ["block","gh-infinite-scroll-box",[],["tagName","section","classNames","content-list-content js-content-scrollbox","fetch","loadNextPage"],2,null],
           ["attribute","class",["concat",["content-preview js-content-preview ",["subexpr","if",[["get","postContentFocused"],"keyboard-focused"],[]]]]],
@@ -18623,7 +19479,7 @@ define('ghost/templates/posts/index', ['exports'], function (exports) {
               },
               "end": {
                 "line": 5,
-                "column": 130
+                "column": 115
               }
             },
             "moduleName": "ghost/templates/posts/index.hbs"
@@ -18636,8 +19492,8 @@ define('ghost/templates/posts/index', ['exports'], function (exports) {
             var el1 = dom.createElement("button");
             dom.setAttribute(el1,"type","button");
             dom.setAttribute(el1,"class","btn btn-green btn-lg");
-            dom.setAttribute(el1,"title","New Post");
-            var el2 = dom.createTextNode("Write a new Post");
+            dom.setAttribute(el1,"title","新建博文");
+            var el2 = dom.createTextNode("我来写一篇");
             dom.appendChild(el1, el2);
             dom.appendChild(el0, el1);
             return el0;
@@ -18678,7 +19534,7 @@ define('ghost/templates/posts/index', ['exports'], function (exports) {
           var el2 = dom.createTextNode("\n            ");
           dom.appendChild(el1, el2);
           var el2 = dom.createElement("h3");
-          var el3 = dom.createTextNode("You Haven't Written Any Posts Yet!");
+          var el3 = dom.createTextNode("一篇博文都没有！");
           dom.appendChild(el2, el3);
           dom.appendChild(el1, el2);
           var el2 = dom.createTextNode("\n            ");
@@ -18989,7 +19845,7 @@ define('ghost/templates/reset', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["inline","gh-input",[],["type","password","name","newpassword","placeholder","Password","class","password","autocorrect","off","autofocus","autofocus","value",["subexpr","@mut",[["get","newPassword"]],[]]]]
+          ["inline","gh-input",[],["type","password","name","newpassword","placeholder","密码","class","password","autocorrect","off","autofocus","autofocus","value",["subexpr","@mut",[["get","newPassword"]],[]]]]
         ],
         locals: [],
         templates: []
@@ -19031,7 +19887,7 @@ define('ghost/templates/reset', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["inline","gh-input",[],["type","password","name","ne2password","placeholder","Confirm Password","class","password","autocorrect","off","autofocus","autofocus","value",["subexpr","@mut",[["get","ne2Password"]],[]]]]
+          ["inline","gh-input",[],["type","password","name","ne2password","placeholder","再次输入密码","class","password","autocorrect","off","autofocus","autofocus","value",["subexpr","@mut",[["get","ne2Password"]],[]]]]
         ],
         locals: [],
         templates: []
@@ -19049,7 +19905,7 @@ define('ghost/templates/reset', ['exports'], function (exports) {
             },
             "end": {
               "line": 12,
-              "column": 134
+              "column": 124
             }
           },
           "moduleName": "ghost/templates/reset.hbs"
@@ -19059,7 +19915,7 @@ define('ghost/templates/reset', ['exports'], function (exports) {
         hasRendered: false,
         buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("Reset Password");
+          var el1 = dom.createTextNode("重置密码");
           dom.appendChild(el0, el1);
           return el0;
         },
@@ -19166,6 +20022,500 @@ define('ghost/templates/reset', ['exports'], function (exports) {
   }()));
 
 });
+define('ghost/templates/settings', ['exports'], function (exports) {
+
+  'use strict';
+
+  exports['default'] = Ember.HTMLBars.template((function() {
+    var child0 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@1.13.2",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 10,
+              "column": 12
+            },
+            "end": {
+              "line": 12,
+              "column": 12
+            }
+          },
+          "moduleName": "ghost/templates/settings.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("                ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createComment("");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment,1,1,contextualElement);
+          return morphs;
+        },
+        statements: [
+          ["inline","gh-activating-list-item",[],["route","settings.general","title","全局设置","classNames","settings-nav-general icon-settings"]]
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    var child1 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@1.13.2",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 14,
+              "column": 12
+            },
+            "end": {
+              "line": 16,
+              "column": 12
+            }
+          },
+          "moduleName": "ghost/templates/settings.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("                ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createComment("");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment,1,1,contextualElement);
+          return morphs;
+        },
+        statements: [
+          ["inline","gh-activating-list-item",[],["route","settings.users","title","用户管理","classNames","settings-nav-users icon-users"]]
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    var child2 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@1.13.2",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 18,
+              "column": 12
+            },
+            "end": {
+              "line": 20,
+              "column": 12
+            }
+          },
+          "moduleName": "ghost/templates/settings.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("                ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createComment("");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment,1,1,contextualElement);
+          return morphs;
+        },
+        statements: [
+          ["inline","gh-activating-list-item",[],["route","settings.tags","title","标签管理","classNames","settings-nav-tags icon-tag"]]
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    var child3 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@1.13.2",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 22,
+              "column": 12
+            },
+            "end": {
+              "line": 24,
+              "column": 12
+            }
+          },
+          "moduleName": "ghost/templates/settings.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("                ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createComment("");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment,1,1,contextualElement);
+          return morphs;
+        },
+        statements: [
+          ["inline","gh-activating-list-item",[],["route","settings.navigation","title","导航菜单","classNames","settings-nav-navigation icon-compass"]]
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    var child4 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@1.13.2",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 26,
+              "column": 12
+            },
+            "end": {
+              "line": 28,
+              "column": 12
+            }
+          },
+          "moduleName": "ghost/templates/settings.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("                ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createComment("");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment,1,1,contextualElement);
+          return morphs;
+        },
+        statements: [
+          ["inline","gh-activating-list-item",[],["route","settings.code-injection","title","插入代码","classNames","settings-nav-code icon-code"]]
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    var child5 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@1.13.2",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 30,
+              "column": 12
+            },
+            "end": {
+              "line": 32,
+              "column": 12
+            }
+          },
+          "moduleName": "ghost/templates/settings.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("                ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createComment("");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment,1,1,contextualElement);
+          return morphs;
+        },
+        statements: [
+          ["inline","gh-activating-list-item",[],["route","settings.pass-protect","title","Password Protection","classNames","settings-nav-pass icon-lock"]]
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    var child6 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@1.13.2",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 34,
+              "column": 12
+            },
+            "end": {
+              "line": 36,
+              "column": 12
+            }
+          },
+          "moduleName": "ghost/templates/settings.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("                ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createComment("");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment,1,1,contextualElement);
+          return morphs;
+        },
+        statements: [
+          ["inline","gh-activating-list-item",[],["route","settings.labs","title","实验室","classNames","settings-nav-labs icon-atom"]]
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    var child7 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@1.13.2",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 38,
+              "column": 12
+            },
+            "end": {
+              "line": 40,
+              "column": 12
+            }
+          },
+          "moduleName": "ghost/templates/settings.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("                ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createComment("");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment,1,1,contextualElement);
+          return morphs;
+        },
+        statements: [
+          ["inline","gh-activating-list-item",[],["route","settings.about","title","关于我们","classNames","settings-nav-about icon-pacman"]]
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    return {
+      meta: {
+        "revision": "Ember@1.13.2",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 50,
+            "column": 0
+          }
+        },
+        "moduleName": "ghost/templates/settings.hbs"
+      },
+      arity: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      buildFragment: function buildFragment(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createElement("header");
+        dom.setAttribute(el1,"class","page-header");
+        var el2 = dom.createTextNode("\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("button");
+        dom.setAttribute(el2,"class","menu-button js-menu-button");
+        var el3 = dom.createElement("span");
+        dom.setAttribute(el3,"class","sr-only");
+        var el4 = dom.createTextNode("菜单");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("h2");
+        dom.setAttribute(el2,"class","page-title");
+        var el3 = dom.createTextNode("设置");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n\n");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createElement("div");
+        dom.setAttribute(el1,"class","page-content");
+        var el2 = dom.createTextNode("\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("nav");
+        dom.setAttribute(el2,"class","settings-nav js-settings-menu");
+        var el3 = dom.createTextNode("\n        ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("ul");
+        var el4 = dom.createTextNode("\n\n");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n            ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createElement("li");
+        dom.setAttribute(el4,"class","settings-menu-theme-market icon-appearance");
+        var el5 = dom.createTextNode("\n                ");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createElement("a");
+        dom.setAttribute(el5,"href","http://www.ghostchina.com/market/");
+        dom.setAttribute(el5,"target","_blank");
+        var el6 = dom.createTextNode("主题市场");
+        dom.appendChild(el5, el6);
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("\n            ");
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n        ");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createComment("");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+        var element0 = dom.childAt(fragment, [0, 1]);
+        var element1 = dom.childAt(fragment, [2]);
+        var element2 = dom.childAt(element1, [1, 1]);
+        var morphs = new Array(10);
+        morphs[0] = dom.createElementMorph(element0);
+        morphs[1] = dom.createMorphAt(element2,1,1);
+        morphs[2] = dom.createMorphAt(element2,3,3);
+        morphs[3] = dom.createMorphAt(element2,5,5);
+        morphs[4] = dom.createMorphAt(element2,7,7);
+        morphs[5] = dom.createMorphAt(element2,9,9);
+        morphs[6] = dom.createMorphAt(element2,11,11);
+        morphs[7] = dom.createMorphAt(element2,13,13);
+        morphs[8] = dom.createMorphAt(element2,15,15);
+        morphs[9] = dom.createMorphAt(element1,3,3);
+        return morphs;
+      },
+      statements: [
+        ["element","action",["toggleGlobalMobileNav"],[]],
+        ["block","if",[["get","showGeneral"]],[],0,null],
+        ["block","if",[["get","showUsers"]],[],1,null],
+        ["block","if",[["get","showTags"]],[],2,null],
+        ["block","if",[["get","showNavigation"]],[],3,null],
+        ["block","if",[["get","showCodeInjection"]],[],4,null],
+        ["block","if",[["get","showPassProtection"]],[],5,null],
+        ["block","if",[["get","showLabs"]],[],6,null],
+        ["block","if",[["get","showAbout"]],[],7,null],
+        ["content","outlet"]
+      ],
+      locals: [],
+      templates: [child0, child1, child2, child3, child4, child5, child6, child7]
+    };
+  }()));
+
+});
 define('ghost/templates/settings/code-injection', ['exports'], function (exports) {
 
   'use strict';
@@ -19183,7 +20533,7 @@ define('ghost/templates/settings/code-injection', ['exports'], function (exports
             },
             "end": {
               "line": 3,
-              "column": 85
+              "column": 75
             }
           },
           "moduleName": "ghost/templates/settings/code-injection.hbs"
@@ -19194,7 +20544,7 @@ define('ghost/templates/settings/code-injection', ['exports'], function (exports
         buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
           var el1 = dom.createElement("span");
-          var el2 = dom.createTextNode("Code Injection");
+          var el2 = dom.createTextNode("插入代码");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           return el0;
@@ -19219,7 +20569,7 @@ define('ghost/templates/settings/code-injection', ['exports'], function (exports
             },
             "end": {
               "line": 5,
-              "column": 92
+              "column": 90
             }
           },
           "moduleName": "ghost/templates/settings/code-injection.hbs"
@@ -19229,7 +20579,7 @@ define('ghost/templates/settings/code-injection', ['exports'], function (exports
         hasRendered: false,
         buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("Save");
+          var el1 = dom.createTextNode("保存");
           dom.appendChild(el0, el1);
           return el0;
         },
@@ -19301,7 +20651,7 @@ define('ghost/templates/settings/code-injection', ['exports'], function (exports
         var el5 = dom.createTextNode("\n                ");
         dom.appendChild(el4, el5);
         var el5 = dom.createElement("p");
-        var el6 = dom.createTextNode("\n                    Ghost allows you to inject code into the top and bottom of your theme files without editing them. This allows for quick modifications to insert useful things like tracking codes and meta tags.\n                ");
+        var el6 = dom.createTextNode("\n                    Ghost 可以帮你在主题模板的页头和页脚插入额外的代码，从而免去直接修改模板文件的麻烦。这一功能允许你快速插入或修改比如“统计代码”和“元数据”等。\n                ");
         dom.appendChild(el5, el6);
         dom.appendChild(el4, el5);
         var el5 = dom.createTextNode("\n\n                ");
@@ -19312,19 +20662,19 @@ define('ghost/templates/settings/code-injection', ['exports'], function (exports
         dom.appendChild(el5, el6);
         var el6 = dom.createElement("label");
         dom.setAttribute(el6,"for","ghost-head");
-        var el7 = dom.createTextNode("Blog Header");
+        var el7 = dom.createTextNode("页头");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("\n                    ");
         dom.appendChild(el5, el6);
         var el6 = dom.createElement("p");
-        var el7 = dom.createTextNode("Code here will be injected into the ");
+        var el7 = dom.createTextNode("在这里输入的代码将通过 ");
         dom.appendChild(el6, el7);
         var el7 = dom.createElement("code");
         var el8 = dom.createTextNode("{{ghost_head}}");
         dom.appendChild(el7, el8);
         dom.appendChild(el6, el7);
-        var el7 = dom.createTextNode(" tag on every page of your blog");
+        var el7 = dom.createTextNode(" 标志插入到每一页的页头位置");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("\n                    ");
@@ -19342,19 +20692,19 @@ define('ghost/templates/settings/code-injection', ['exports'], function (exports
         dom.appendChild(el5, el6);
         var el6 = dom.createElement("label");
         dom.setAttribute(el6,"for","ghost-foot");
-        var el7 = dom.createTextNode("Blog Footer");
+        var el7 = dom.createTextNode("页脚");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("\n                    ");
         dom.appendChild(el5, el6);
         var el6 = dom.createElement("p");
-        var el7 = dom.createTextNode("Code here will be injected into the ");
+        var el7 = dom.createTextNode("在这里输入的代码将通过 ");
         dom.appendChild(el6, el7);
         var el7 = dom.createElement("code");
         var el8 = dom.createTextNode("{{ghost_foot}}");
         dom.appendChild(el7, el8);
         dom.appendChild(el6, el7);
-        var el7 = dom.createTextNode(" tag on every page of your blog");
+        var el7 = dom.createTextNode(" 标志插入到每一页的页脚位置");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("\n                    ");
@@ -19420,7 +20770,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
             },
             "end": {
               "line": 3,
-              "column": 78
+              "column": 75
             }
           },
           "moduleName": "ghost/templates/settings/general.hbs"
@@ -19431,7 +20781,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
         buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
           var el1 = dom.createElement("span");
-          var el2 = dom.createTextNode("General");
+          var el2 = dom.createTextNode("全局设置");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           return el0;
@@ -19456,7 +20806,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
             },
             "end": {
               "line": 5,
-              "column": 92
+              "column": 90
             }
           },
           "moduleName": "ghost/templates/settings/general.hbs"
@@ -19466,7 +20816,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
         hasRendered: false,
         buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("Save");
+          var el1 = dom.createTextNode("保存");
           dom.appendChild(el0, el1);
           return el0;
         },
@@ -19504,7 +20854,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("label");
           dom.setAttribute(el1,"for","blog-title");
-          var el2 = dom.createTextNode("Blog Title");
+          var el2 = dom.createTextNode("博客名称");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n                    ");
@@ -19518,7 +20868,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
           var el1 = dom.createTextNode("\n                    ");
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("p");
-          var el2 = dom.createTextNode("The name of your blog");
+          var el2 = dom.createTextNode("为你的博客取一个响亮的名字");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n");
@@ -19565,7 +20915,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("label");
           dom.setAttribute(el1,"for","blog-description");
-          var el2 = dom.createTextNode("Blog Description");
+          var el2 = dom.createTextNode("博客简介");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n                    ");
@@ -19579,7 +20929,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
           var el1 = dom.createTextNode("\n                    ");
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("p");
-          var el2 = dom.createTextNode("\n                        Describe what your blog is about\n                        ");
+          var el2 = dom.createTextNode("\n                        简单介绍一下你的博客\n                        ");
           dom.appendChild(el1, el2);
           var el2 = dom.createComment("");
           dom.appendChild(el1, el2);
@@ -19681,7 +21031,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
           var el1 = dom.createElement("button");
           dom.setAttribute(el1,"type","button");
           dom.setAttribute(el1,"class","btn btn-green js-modal-logo");
-          var el2 = dom.createTextNode("Upload Image");
+          var el2 = dom.createTextNode("上传图片");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n");
@@ -19727,7 +21077,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("img");
           dom.setAttribute(el1,"class","blog-cover");
-          dom.setAttribute(el1,"alt","cover photo");
+          dom.setAttribute(el1,"alt","封面图");
           dom.setAttribute(el1,"role","button");
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n");
@@ -19776,7 +21126,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
           var el1 = dom.createElement("button");
           dom.setAttribute(el1,"type","button");
           dom.setAttribute(el1,"class","btn btn-green js-modal-cover");
-          var el2 = dom.createTextNode("Upload Image");
+          var el2 = dom.createTextNode("上传图片");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n");
@@ -19830,7 +21180,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
             var el1 = dom.createTextNode("\n                    ");
             dom.appendChild(el0, el1);
             var el1 = dom.createElement("p");
-            var el2 = dom.createTextNode("This password will be needed to access your blog. All search engine optimization and social features are now disabled. This password is stored in plaintext.");
+            var el2 = dom.createTextNode("访问者需要输入上面的密码才能访问你的博客。开启私密博客模式后，所有搜索引擎优化和社交特性都将被禁用。密码以明文形式存储。");
             dom.appendChild(el1, el2);
             dom.appendChild(el0, el1);
             var el1 = dom.createTextNode("\n");
@@ -19965,7 +21315,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
         var el5 = dom.createTextNode("\n                ");
         dom.appendChild(el4, el5);
         var el5 = dom.createElement("label");
-        var el6 = dom.createTextNode("Blog Logo");
+        var el6 = dom.createTextNode("博客 Logo");
         dom.appendChild(el5, el6);
         dom.appendChild(el4, el5);
         var el5 = dom.createTextNode("\n");
@@ -19975,7 +21325,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
         var el5 = dom.createTextNode("                ");
         dom.appendChild(el4, el5);
         var el5 = dom.createElement("p");
-        var el6 = dom.createTextNode("Display a sexy logo for your publication");
+        var el6 = dom.createTextNode("为博客设置一个 logo");
         dom.appendChild(el5, el6);
         dom.appendChild(el4, el5);
         var el5 = dom.createTextNode("\n            ");
@@ -19988,7 +21338,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
         var el5 = dom.createTextNode("\n                ");
         dom.appendChild(el4, el5);
         var el5 = dom.createElement("label");
-        var el6 = dom.createTextNode("Blog Cover");
+        var el6 = dom.createTextNode("博客封面图");
         dom.appendChild(el5, el6);
         dom.appendChild(el4, el5);
         var el5 = dom.createTextNode("\n");
@@ -19998,7 +21348,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
         var el5 = dom.createTextNode("                ");
         dom.appendChild(el4, el5);
         var el5 = dom.createElement("p");
-        var el6 = dom.createTextNode("Display a cover image on your site");
+        var el6 = dom.createTextNode("为你的博客设置一个个性的封面图");
         dom.appendChild(el5, el6);
         dom.appendChild(el4, el5);
         var el5 = dom.createTextNode("\n            ");
@@ -20015,7 +21365,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
         dom.appendChild(el5, el6);
         var el6 = dom.createElement("label");
         dom.setAttribute(el6,"for","postsPerPage");
-        var el7 = dom.createTextNode("Posts per page");
+        var el7 = dom.createTextNode("每页显示博文数");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("\n                    ");
@@ -20025,7 +21375,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
         var el6 = dom.createTextNode("\n                    ");
         dom.appendChild(el5, el6);
         var el6 = dom.createElement("p");
-        var el7 = dom.createTextNode("How many posts should be displayed on each page");
+        var el7 = dom.createTextNode("设置每页显示博文的数量");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("\n                ");
@@ -20039,7 +21389,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
         dom.appendChild(el5, el6);
         var el6 = dom.createElement("label");
         dom.setAttribute(el6,"for","permalinks");
-        var el7 = dom.createTextNode("Dated Permalinks");
+        var el7 = dom.createTextNode("博文地址");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("\n                    ");
@@ -20059,7 +21409,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
         var el7 = dom.createTextNode("\n                        ");
         dom.appendChild(el6, el7);
         var el7 = dom.createElement("p");
-        var el8 = dom.createTextNode("Include the date in your post URLs");
+        var el8 = dom.createTextNode("在博文地址中加入日期 ( 例如: http://my-ghost-blog.com/2013/09/27/welcome-to-ghost/ )");
         dom.appendChild(el7, el8);
         dom.appendChild(el6, el7);
         var el7 = dom.createTextNode("\n                    ");
@@ -20076,7 +21426,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
         dom.appendChild(el5, el6);
         var el6 = dom.createElement("label");
         dom.setAttribute(el6,"for","activeTheme");
-        var el7 = dom.createTextNode("Theme");
+        var el7 = dom.createTextNode("博客主题");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("\n                    ");
@@ -20094,7 +21444,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
         var el6 = dom.createTextNode("\n                    ");
         dom.appendChild(el5, el6);
         var el6 = dom.createElement("p");
-        var el7 = dom.createTextNode("Select a theme for your blog");
+        var el7 = dom.createTextNode("为你的博客选择一个喜欢的主题");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("\n                ");
@@ -20108,7 +21458,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
         dom.appendChild(el5, el6);
         var el6 = dom.createElement("label");
         dom.setAttribute(el6,"for","isPrivate");
-        var el7 = dom.createTextNode("Make this blog private");
+        var el7 = dom.createTextNode("开启私密博客模式");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("\n                    ");
@@ -20128,7 +21478,7 @@ define('ghost/templates/settings/general', ['exports'], function (exports) {
         var el7 = dom.createTextNode("\n                        ");
         dom.appendChild(el6, el7);
         var el7 = dom.createElement("p");
-        var el8 = dom.createTextNode("Enable password protection");
+        var el8 = dom.createTextNode("设置用密码保护");
         dom.appendChild(el7, el8);
         dom.appendChild(el6, el7);
         var el7 = dom.createTextNode("\n                    ");
@@ -20227,7 +21577,7 @@ define('ghost/templates/settings/labs', ['exports'], function (exports) {
         buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
           var el1 = dom.createElement("span");
-          var el2 = dom.createTextNode("Labs");
+          var el2 = dom.createTextNode("实验功能");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           return el0;
@@ -20252,7 +21602,7 @@ define('ghost/templates/settings/labs', ['exports'], function (exports) {
             },
             "end": {
               "line": 40,
-              "column": 128
+              "column": 126
             }
           },
           "moduleName": "ghost/templates/settings/labs.hbs"
@@ -20262,7 +21612,7 @@ define('ghost/templates/settings/labs', ['exports'], function (exports) {
         hasRendered: false,
         buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("Send");
+          var el1 = dom.createTextNode("发送");
           dom.appendChild(el0, el1);
           return el0;
         },
@@ -20316,10 +21666,10 @@ define('ghost/templates/settings/labs', ['exports'], function (exports) {
         dom.appendChild(el2, el3);
         var el3 = dom.createElement("p");
         var el4 = dom.createElement("strong");
-        var el5 = dom.createTextNode("Important note:");
+        var el5 = dom.createTextNode("重要提示：");
         dom.appendChild(el4, el5);
         dom.appendChild(el3, el4);
-        var el4 = dom.createTextNode(" Labs is a testing ground for experimental features which aren't quite ready for primetime. They may change, break or inexplicably disappear at any time.");
+        var el4 = dom.createTextNode(" “实验功能”是新功能的试验田，放在这里的功能都还未达到稳定的状态。这些功能随时会被改变、不保证兼容，甚至消失。");
         dom.appendChild(el3, el4);
         dom.appendChild(el2, el3);
         var el3 = dom.createTextNode("\n        ");
@@ -20336,7 +21686,7 @@ define('ghost/templates/settings/labs', ['exports'], function (exports) {
         var el6 = dom.createTextNode("\n                    ");
         dom.appendChild(el5, el6);
         var el6 = dom.createElement("label");
-        var el7 = dom.createTextNode("Export");
+        var el7 = dom.createTextNode("导出");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("\n                    ");
@@ -20344,13 +21694,13 @@ define('ghost/templates/settings/labs', ['exports'], function (exports) {
         var el6 = dom.createElement("button");
         dom.setAttribute(el6,"type","button");
         dom.setAttribute(el6,"class","btn btn-blue");
-        var el7 = dom.createTextNode("Export");
+        var el7 = dom.createTextNode("导出");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("\n                    ");
         dom.appendChild(el5, el6);
         var el6 = dom.createElement("p");
-        var el7 = dom.createTextNode("Export the blog settings and data.");
+        var el7 = dom.createTextNode("导出博客设置和数据。");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("\n                ");
@@ -20377,7 +21727,7 @@ define('ghost/templates/settings/labs', ['exports'], function (exports) {
         var el6 = dom.createTextNode("\n                    ");
         dom.appendChild(el5, el6);
         var el6 = dom.createElement("label");
-        var el7 = dom.createTextNode("Import");
+        var el7 = dom.createTextNode("导入");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("\n                    ");
@@ -20391,7 +21741,7 @@ define('ghost/templates/settings/labs', ['exports'], function (exports) {
         var el6 = dom.createTextNode("\n                    ");
         dom.appendChild(el5, el6);
         var el6 = dom.createElement("p");
-        var el7 = dom.createTextNode("Import from another Ghost installation. If you import a user, this will replace the current user & log you out.");
+        var el7 = dom.createTextNode("导入以前备份的博客数据。如果导入的数据中包含用户信息，用户信息将被覆盖，可能导致无法登陆。");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("\n                ");
@@ -20417,7 +21767,7 @@ define('ghost/templates/settings/labs', ['exports'], function (exports) {
         var el6 = dom.createTextNode("\n                    ");
         dom.appendChild(el5, el6);
         var el6 = dom.createElement("label");
-        var el7 = dom.createTextNode("Delete all Content");
+        var el7 = dom.createTextNode("删除所有内容");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("\n                    ");
@@ -20425,13 +21775,13 @@ define('ghost/templates/settings/labs', ['exports'], function (exports) {
         var el6 = dom.createElement("button");
         dom.setAttribute(el6,"type","button");
         dom.setAttribute(el6,"class","btn btn-red js-delete");
-        var el7 = dom.createTextNode("Delete");
+        var el7 = dom.createTextNode("删除");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("\n                    ");
         dom.appendChild(el5, el6);
         var el6 = dom.createElement("p");
-        var el7 = dom.createTextNode("Delete all posts and tags from the database.");
+        var el7 = dom.createTextNode("从数据库中删除所有博文和标签数据。");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("\n                ");
@@ -20457,7 +21807,7 @@ define('ghost/templates/settings/labs', ['exports'], function (exports) {
         var el6 = dom.createTextNode("\n                    ");
         dom.appendChild(el5, el6);
         var el6 = dom.createElement("label");
-        var el7 = dom.createTextNode("Send a test email");
+        var el7 = dom.createTextNode("发送测试邮件");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("\n                    ");
@@ -20467,7 +21817,7 @@ define('ghost/templates/settings/labs', ['exports'], function (exports) {
         var el6 = dom.createTextNode("\n                    ");
         dom.appendChild(el5, el6);
         var el6 = dom.createElement("p");
-        var el7 = dom.createTextNode("Sends a test email to your address.");
+        var el7 = dom.createTextNode("向你的邮箱地址发送测试邮件。");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("\n                ");
@@ -20536,7 +21886,7 @@ define('ghost/templates/settings/navigation', ['exports'], function (exports) {
               },
               "end": {
                 "line": 3,
-                "column": 81
+                "column": 75
               }
             },
             "moduleName": "ghost/templates/settings/navigation.hbs"
@@ -20547,7 +21897,7 @@ define('ghost/templates/settings/navigation', ['exports'], function (exports) {
           buildFragment: function buildFragment(dom) {
             var el0 = dom.createDocumentFragment();
             var el1 = dom.createElement("span");
-            var el2 = dom.createTextNode("Navigation");
+            var el2 = dom.createTextNode("导航菜单");
             dom.appendChild(el1, el2);
             dom.appendChild(el0, el1);
             return el0;
@@ -20572,7 +21922,7 @@ define('ghost/templates/settings/navigation', ['exports'], function (exports) {
               },
               "end": {
                 "line": 5,
-                "column": 92
+                "column": 90
               }
             },
             "moduleName": "ghost/templates/settings/navigation.hbs"
@@ -20582,7 +21932,7 @@ define('ghost/templates/settings/navigation', ['exports'], function (exports) {
           hasRendered: false,
           buildFragment: function buildFragment(dom) {
             var el0 = dom.createDocumentFragment();
-            var el1 = dom.createTextNode("Save");
+            var el1 = dom.createTextNode("保存");
             dom.appendChild(el0, el1);
             return el0;
           },
@@ -20789,7 +22139,7 @@ define('ghost/templates/settings/tags', ['exports'], function (exports) {
         buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
           var el1 = dom.createElement("span");
-          var el2 = dom.createTextNode("Tags");
+          var el2 = dom.createTextNode("标签管理");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           return el0;
@@ -20973,7 +22323,7 @@ define('ghost/templates/settings/tags', ['exports'], function (exports) {
         var el4 = dom.createElement("button");
         dom.setAttribute(el4,"type","button");
         dom.setAttribute(el4,"class","btn btn-green");
-        var el5 = dom.createTextNode("New Tag");
+        var el5 = dom.createTextNode("新建标签");
         dom.appendChild(el4, el5);
         dom.appendChild(el3, el4);
         var el4 = dom.createTextNode("\n        ");
@@ -21044,7 +22394,7 @@ define('ghost/templates/settings/tags/settings-menu', ['exports'], function (exp
             dom.appendChild(el0, el1);
             var el1 = dom.createElement("label");
             dom.setAttribute(el1,"for","tag-name");
-            var el2 = dom.createTextNode("Name");
+            var el2 = dom.createTextNode("标签名");
             dom.appendChild(el1, el2);
             dom.appendChild(el0, el1);
             var el1 = dom.createTextNode("\n                        ");
@@ -21103,13 +22453,13 @@ define('ghost/templates/settings/tags/settings-menu', ['exports'], function (exp
             var el2 = dom.createTextNode("\n                                ");
             dom.appendChild(el1, el2);
             var el2 = dom.createElement("b");
-            var el3 = dom.createTextNode("Meta Data");
+            var el3 = dom.createTextNode("搜索引擎优化");
             dom.appendChild(el2, el3);
             dom.appendChild(el1, el2);
             var el2 = dom.createTextNode("\n                                ");
             dom.appendChild(el1, el2);
             var el2 = dom.createElement("span");
-            var el3 = dom.createTextNode("Extra content for SEO and social media.");
+            var el3 = dom.createTextNode("优化在搜索引擎和社交媒体上的呈现效果，提高访问量。");
             dom.appendChild(el2, el3);
             dom.appendChild(el1, el2);
             var el2 = dom.createTextNode("\n                            ");
@@ -21162,7 +22512,7 @@ define('ghost/templates/settings/tags/settings-menu', ['exports'], function (exp
             var el2 = dom.createElement("i");
             dom.setAttribute(el2,"class","icon-trash");
             dom.appendChild(el1, el2);
-            var el2 = dom.createTextNode(" Delete Tag");
+            var el2 = dom.createTextNode(" 删除标签");
             dom.appendChild(el1, el2);
             dom.appendChild(el0, el1);
             var el1 = dom.createTextNode("\n");
@@ -21210,7 +22560,7 @@ define('ghost/templates/settings/tags/settings-menu', ['exports'], function (exp
                 dom.appendChild(el0, el1);
                 var el1 = dom.createElement("label");
                 dom.setAttribute(el1,"for","meta-title");
-                var el2 = dom.createTextNode("Meta Title");
+                var el2 = dom.createTextNode("优化标题");
                 dom.appendChild(el1, el2);
                 dom.appendChild(el0, el1);
                 var el1 = dom.createTextNode("\n                        ");
@@ -21224,13 +22574,13 @@ define('ghost/templates/settings/tags/settings-menu', ['exports'], function (exp
                 var el1 = dom.createTextNode("\n                        ");
                 dom.appendChild(el0, el1);
                 var el1 = dom.createElement("p");
-                var el2 = dom.createTextNode("Recommended: ");
+                var el2 = dom.createTextNode("建议长度：");
                 dom.appendChild(el1, el2);
                 var el2 = dom.createElement("b");
                 var el3 = dom.createTextNode("70");
                 dom.appendChild(el2, el3);
                 dom.appendChild(el1, el2);
-                var el2 = dom.createTextNode(" characters. You’ve used ");
+                var el2 = dom.createTextNode(" 个字符。已输入的字符数为 ");
                 dom.appendChild(el1, el2);
                 var el2 = dom.createComment("");
                 dom.appendChild(el1, el2);
@@ -21281,7 +22631,7 @@ define('ghost/templates/settings/tags/settings-menu', ['exports'], function (exp
                 dom.appendChild(el0, el1);
                 var el1 = dom.createElement("label");
                 dom.setAttribute(el1,"for","meta-description");
-                var el2 = dom.createTextNode("Meta Description");
+                var el2 = dom.createTextNode("优化摘要");
                 dom.appendChild(el1, el2);
                 dom.appendChild(el0, el1);
                 var el1 = dom.createTextNode("\n                        ");
@@ -21295,13 +22645,13 @@ define('ghost/templates/settings/tags/settings-menu', ['exports'], function (exp
                 var el1 = dom.createTextNode("\n                        ");
                 dom.appendChild(el0, el1);
                 var el1 = dom.createElement("p");
-                var el2 = dom.createTextNode("Recommended: ");
+                var el2 = dom.createTextNode("建议长度：");
                 dom.appendChild(el1, el2);
                 var el2 = dom.createElement("b");
                 var el3 = dom.createTextNode("156");
                 dom.appendChild(el2, el3);
                 dom.appendChild(el1, el2);
-                var el2 = dom.createTextNode(" characters. You’ve used ");
+                var el2 = dom.createTextNode(" 个字符。已输入的字符数为 ");
                 dom.appendChild(el1, el2);
                 var el2 = dom.createComment("");
                 dom.appendChild(el1, el2);
@@ -21357,14 +22707,14 @@ define('ghost/templates/settings/tags/settings-menu', ['exports'], function (exp
               dom.setAttribute(el2,"class","back icon-arrow-left settings-menu-header-action");
               var el3 = dom.createElement("span");
               dom.setAttribute(el3,"class","hidden");
-              var el4 = dom.createTextNode("Back");
+              var el4 = dom.createTextNode("返回");
               dom.appendChild(el3, el4);
               dom.appendChild(el2, el3);
               dom.appendChild(el1, el2);
               var el2 = dom.createTextNode("\n                    ");
               dom.appendChild(el1, el2);
               var el2 = dom.createElement("h4");
-              var el3 = dom.createTextNode("Meta Data");
+              var el3 = dom.createTextNode("搜索引擎优化");
               dom.appendChild(el2, el3);
               dom.appendChild(el1, el2);
               var el2 = dom.createTextNode("\n                    ");
@@ -21397,7 +22747,7 @@ define('ghost/templates/settings/tags/settings-menu', ['exports'], function (exp
               var el4 = dom.createTextNode("\n                        ");
               dom.appendChild(el3, el4);
               var el4 = dom.createElement("label");
-              var el5 = dom.createTextNode("Search Engine Result Preview");
+              var el5 = dom.createTextNode("搜索引擎展示效果预览");
               dom.appendChild(el4, el5);
               dom.appendChild(el3, el4);
               var el4 = dom.createTextNode("\n                        ");
@@ -21536,7 +22886,7 @@ define('ghost/templates/settings/tags/settings-menu', ['exports'], function (exp
           var el3 = dom.createTextNode("\n                ");
           dom.appendChild(el2, el3);
           var el3 = dom.createElement("h4");
-          var el4 = dom.createTextNode("Tag Settings");
+          var el4 = dom.createTextNode("标签属性设置");
           dom.appendChild(el3, el4);
           dom.appendChild(el2, el3);
           var el3 = dom.createTextNode("\n                ");
@@ -21547,7 +22897,7 @@ define('ghost/templates/settings/tags/settings-menu', ['exports'], function (exp
           dom.appendChild(el3, el4);
           var el4 = dom.createElement("span");
           dom.setAttribute(el4,"class","hidden");
-          var el5 = dom.createTextNode("Close");
+          var el5 = dom.createTextNode("关闭");
           dom.appendChild(el4, el5);
           dom.appendChild(el3, el4);
           var el4 = dom.createTextNode("\n                ");
@@ -21601,7 +22951,7 @@ define('ghost/templates/settings/tags/settings-menu', ['exports'], function (exp
           dom.appendChild(el4, el5);
           var el5 = dom.createElement("label");
           dom.setAttribute(el5,"for","tag-description");
-          var el6 = dom.createTextNode("Description");
+          var el6 = dom.createTextNode("描述");
           dom.appendChild(el5, el6);
           dom.appendChild(el4, el5);
           var el5 = dom.createTextNode("\n                        ");
@@ -21673,7 +23023,7 @@ define('ghost/templates/settings/tags/settings-menu', ['exports'], function (exp
         statements: [
           ["attribute","class",["concat",[["subexpr","if",[["get","isViewingSubview"],"settings-menu-pane-out-left","settings-menu-pane-in"],[]]," settings-menu settings-menu-pane tag-settings-pane"]]],
           ["element","action",["closeMenus"],[]],
-          ["inline","gh-uploader",[],["uploaded","setCoverImage","canceled","clearCoverImage","description","Add tag image","image",["subexpr","@mut",[["get","activeTag.image"]],[]],"initUploader","setUploaderReference","tagName","section"]],
+          ["inline","gh-uploader",[],["uploaded","setCoverImage","canceled","clearCoverImage","description","为标签设置图片","image",["subexpr","@mut",[["get","activeTag.image"]],[]],"initUploader","setUploaderReference","tagName","section"]],
           ["block","gh-form-group",[],["errors",["subexpr","@mut",[["get","activeTag.errors"]],[]],"hasValidated",["subexpr","@mut",[["get","activeTag.hasValidated"]],[]],"property","name"],0,null],
           ["inline","gh-input",[],["id","tag-url","name","url","type","text","value",["subexpr","@mut",[["get","activeTagSlugScratch"]],[]],"focus-out","saveActiveTagSlug"]],
           ["inline","gh-url-preview",[],["prefix","tag","slug",["subexpr","@mut",[["get","activeTagSlugScratch"]],[]],"tagName","p","classNames","description"]],
@@ -21750,7 +23100,7 @@ define('ghost/templates/setup', ['exports'], function (exports) {
               },
               "end": {
                 "line": 5,
-                "column": 100
+                "column": 98
               }
             },
             "moduleName": "ghost/templates/setup.hbs"
@@ -21763,7 +23113,7 @@ define('ghost/templates/setup', ['exports'], function (exports) {
             var el1 = dom.createElement("i");
             dom.setAttribute(el1,"class","icon-arrow-left");
             dom.appendChild(el0, el1);
-            var el1 = dom.createTextNode(" Back");
+            var el1 = dom.createTextNode(" 返回");
             dom.appendChild(el0, el1);
             return el0;
           },
@@ -22094,7 +23444,7 @@ define('ghost/templates/setup/one', ['exports'], function (exports) {
         hasRendered: false,
         buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("    Create your account ");
+          var el1 = dom.createTextNode("    创建账户 ");
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("i");
           dom.setAttribute(el1,"class","icon-chevron");
@@ -22136,25 +23486,25 @@ define('ghost/templates/setup/one', ['exports'], function (exports) {
         var el2 = dom.createTextNode("\n    ");
         dom.appendChild(el1, el2);
         var el2 = dom.createElement("h1");
-        var el3 = dom.createTextNode("Welcome to ");
+        var el3 = dom.createTextNode("欢迎使用 ");
         dom.appendChild(el2, el3);
         var el3 = dom.createElement("strong");
         var el4 = dom.createTextNode("Ghost");
         dom.appendChild(el3, el4);
         dom.appendChild(el2, el3);
-        var el3 = dom.createTextNode("!");
+        var el3 = dom.createTextNode("！");
         dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n    ");
         dom.appendChild(el1, el2);
         var el2 = dom.createElement("p");
-        var el3 = dom.createTextNode("All over the world, people have started ");
+        var el3 = dom.createTextNode("截止到现在，总共有 ");
         dom.appendChild(el2, el3);
         var el3 = dom.createElement("em");
         var el4 = dom.createComment("");
         dom.appendChild(el3, el4);
         dom.appendChild(el2, el3);
-        var el3 = dom.createTextNode(" incredible blogs with Ghost. Today, we’re starting yours.");
+        var el3 = dom.createTextNode(" 个 Ghost 博客分布在世界各地。现在，就等你加入我们了！");
         dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n");
@@ -22167,7 +23517,7 @@ define('ghost/templates/setup/one', ['exports'], function (exports) {
         var el2 = dom.createTextNode("\n    ");
         dom.appendChild(el1, el2);
         var el2 = dom.createElement("img");
-        dom.setAttribute(el2,"alt","Ghost screenshot");
+        dom.setAttribute(el2,"alt","Ghost 效果图");
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n");
         dom.appendChild(el1, el2);
@@ -22229,7 +23579,7 @@ define('ghost/templates/setup/three', ['exports'], function (exports) {
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("label");
           dom.setAttribute(el1,"for","users");
-          var el2 = dom.createTextNode("Enter one email address per line, we’ll handle the rest! ");
+          var el2 = dom.createTextNode("每行一个邮箱地址，我来帮您发邀请！");
           dom.appendChild(el1, el2);
           var el2 = dom.createElement("i");
           dom.setAttribute(el2,"class","icon-mail");
@@ -22320,13 +23670,13 @@ define('ghost/templates/setup/three', ['exports'], function (exports) {
         var el2 = dom.createTextNode("\n    ");
         dom.appendChild(el1, el2);
         var el2 = dom.createElement("h1");
-        var el3 = dom.createTextNode("Invite your team");
+        var el3 = dom.createTextNode("邀请小伙伴儿们");
         dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n    ");
         dom.appendChild(el1, el2);
         var el2 = dom.createElement("p");
-        var el3 = dom.createTextNode("Ghost works best when shared with others. Collaborate, get feedback on your posts & work together on ideas.");
+        var el3 = dom.createTextNode("Ghost 完美地支持共创、协作、交流。");
         dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n");
@@ -22357,7 +23707,7 @@ define('ghost/templates/setup/three', ['exports'], function (exports) {
         dom.appendChild(el0, el1);
         var el1 = dom.createElement("button");
         dom.setAttribute(el1,"class","gh-flow-skip");
-        var el2 = dom.createTextNode("\n    I'll do this later, take me to my blog!\n");
+        var el2 = dom.createTextNode("\n    稍后再邀请，先进入博客！\n");
         dom.appendChild(el1, el2);
         dom.appendChild(el0, el1);
         var el1 = dom.createTextNode("\n");
@@ -22418,7 +23768,7 @@ define('ghost/templates/setup/two', ['exports'], function (exports) {
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("label");
           dom.setAttribute(el1,"for","email-address");
-          var el2 = dom.createTextNode("Email address");
+          var el2 = dom.createTextNode("邮箱地址");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n        ");
@@ -22447,7 +23797,7 @@ define('ghost/templates/setup/two', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["inline","gh-trim-focus-input",[],["tabindex","1","type","email","name","email","placeholder","Eg. john@example.com","autocorrect","off","value",["subexpr","@mut",[["get","email"]],[]],"focusOut",["subexpr","action",["preValidate","email"],[]]]],
+          ["inline","gh-trim-focus-input",[],["tabindex","1","type","email","name","email","placeholder","例如：wangwu@example.com","autocorrect","off","value",["subexpr","@mut",[["get","email"]],[]],"focusOut",["subexpr","action",["preValidate","email"],[]]]],
           ["inline","gh-error-message",[],["errors",["subexpr","@mut",[["get","errors"]],[]],"property","email"]]
         ],
         locals: [],
@@ -22480,7 +23830,7 @@ define('ghost/templates/setup/two', ['exports'], function (exports) {
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("label");
           dom.setAttribute(el1,"for","full-name");
-          var el2 = dom.createTextNode("Full name");
+          var el2 = dom.createTextNode("姓名");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n        ");
@@ -22509,7 +23859,7 @@ define('ghost/templates/setup/two', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["inline","gh-input",[],["tabindex","2","type","text","name","name","placeholder","Eg. John H. Watson","autocorrect","off","value",["subexpr","@mut",[["get","name"]],[]],"focusOut",["subexpr","action",["preValidate","name"],[]]]],
+          ["inline","gh-input",[],["tabindex","2","type","text","name","name","placeholder","例如：王五","autocorrect","off","value",["subexpr","@mut",[["get","name"]],[]],"focusOut",["subexpr","action",["preValidate","name"],[]]]],
           ["inline","gh-error-message",[],["errors",["subexpr","@mut",[["get","errors"]],[]],"property","name"]]
         ],
         locals: [],
@@ -22542,7 +23892,7 @@ define('ghost/templates/setup/two', ['exports'], function (exports) {
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("label");
           dom.setAttribute(el1,"for","password");
-          var el2 = dom.createTextNode("Password");
+          var el2 = dom.createTextNode("密码");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n        ");
@@ -22571,7 +23921,7 @@ define('ghost/templates/setup/two', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["inline","gh-input",[],["tabindex","3","type","password","name","password","placeholder","At least 8 characters","autocorrect","off","value",["subexpr","@mut",[["get","password"]],[]],"focusOut",["subexpr","action",["preValidate","password"],[]]]],
+          ["inline","gh-input",[],["tabindex","3","type","password","name","password","placeholder","至少 8 个字符","autocorrect","off","value",["subexpr","@mut",[["get","password"]],[]],"focusOut",["subexpr","action",["preValidate","password"],[]]]],
           ["inline","gh-error-message",[],["errors",["subexpr","@mut",[["get","errors"]],[]],"property","password"]]
         ],
         locals: [],
@@ -22604,7 +23954,7 @@ define('ghost/templates/setup/two', ['exports'], function (exports) {
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("label");
           dom.setAttribute(el1,"for","blog-title");
-          var el2 = dom.createTextNode("Blog title");
+          var el2 = dom.createTextNode("博客标题");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n        ");
@@ -22633,7 +23983,7 @@ define('ghost/templates/setup/two', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["inline","gh-input",[],["tabindex","4","type","text","name","blog-title","placeholder","Eg. The Daily Awesome","autocorrect","off","value",["subexpr","@mut",[["get","blogTitle"]],[]],"focusOut",["subexpr","action",["preValidate","blogTitle"],[]]]],
+          ["inline","gh-input",[],["tabindex","4","type","text","name","blog-title","placeholder","例如：王五的博客","autocorrect","off","value",["subexpr","@mut",[["get","blogTitle"]],[]],"focusOut",["subexpr","action",["preValidate","blogTitle"],[]]]],
           ["inline","gh-error-message",[],["errors",["subexpr","@mut",[["get","errors"]],[]],"property","blogTitle"]]
         ],
         locals: [],
@@ -22662,7 +24012,7 @@ define('ghost/templates/setup/two', ['exports'], function (exports) {
         hasRendered: false,
         buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("        Last step: Invite your team ");
+          var el1 = dom.createTextNode("        最后一步：邀请你的小伙伴们一起码字吧 ");
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("i");
           dom.setAttribute(el1,"class","icon-chevron");
@@ -22704,7 +24054,7 @@ define('ghost/templates/setup/two', ['exports'], function (exports) {
         var el2 = dom.createTextNode("\n    ");
         dom.appendChild(el1, el2);
         var el2 = dom.createElement("h1");
-        var el3 = dom.createTextNode("Create your account");
+        var el3 = dom.createTextNode("创建账户");
         dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n");
@@ -22832,7 +24182,7 @@ define('ghost/templates/signin', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["inline","gh-trim-focus-input",[],["class","gh-input email","type","email","placeholder","Email Address","name","identification","autocapitalize","off","autocorrect","off","tabindex","1","focusOut",["subexpr","action",["validate","identification"],[]],"value",["subexpr","@mut",[["get","model.identification"]],[]]]]
+          ["inline","gh-trim-focus-input",[],["class","gh-input email","type","email","placeholder","邮箱地址","name","identification","autocapitalize","off","autocorrect","off","tabindex","1","focusOut",["subexpr","action",["validate","identification"],[]],"value",["subexpr","@mut",[["get","model.identification"]],[]]]]
         ],
         locals: [],
         templates: []
@@ -22851,7 +24201,7 @@ define('ghost/templates/signin', ['exports'], function (exports) {
               },
               "end": {
                 "line": 13,
-                "column": 171
+                "column": 169
               }
             },
             "moduleName": "ghost/templates/signin.hbs"
@@ -22861,7 +24211,7 @@ define('ghost/templates/signin', ['exports'], function (exports) {
           hasRendered: false,
           buildFragment: function buildFragment(dom) {
             var el0 = dom.createDocumentFragment();
-            var el1 = dom.createTextNode("Forgot?");
+            var el1 = dom.createTextNode("忘记密码？");
             dom.appendChild(el0, el1);
             return el0;
           },
@@ -22921,7 +24271,7 @@ define('ghost/templates/signin', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["inline","gh-input",[],["class","password","type","password","placeholder","Password","name","password","tabindex","2","value",["subexpr","@mut",[["get","model.password"]],[]],"autocorrect","off"]],
+          ["inline","gh-input",[],["class","password","type","password","placeholder","密码","name","password","tabindex","2","value",["subexpr","@mut",[["get","model.password"]],[]],"autocorrect","off"]],
           ["block","gh-spin-button",[],["class","forgotten-link btn btn-link","type","button","action","forgotten","tabindex","4","submitting",["subexpr","@mut",[["get","submitting"]],[]],"autoWidth","true"],0,null]
         ],
         locals: [],
@@ -22940,7 +24290,7 @@ define('ghost/templates/signin', ['exports'], function (exports) {
             },
             "end": {
               "line": 16,
-              "column": 178
+              "column": 173
             }
           },
           "moduleName": "ghost/templates/signin.hbs"
@@ -22950,7 +24300,7 @@ define('ghost/templates/signin', ['exports'], function (exports) {
         hasRendered: false,
         buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("Sign in");
+          var el1 = dom.createTextNode("登录");
           dom.appendChild(el0, el1);
           return el0;
         },
@@ -23086,7 +24436,7 @@ define('ghost/templates/signup', ['exports'], function (exports) {
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("label");
           dom.setAttribute(el1,"for","email-address");
-          var el2 = dom.createTextNode("Email address");
+          var el2 = dom.createTextNode("邮箱地址");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n                    ");
@@ -23115,7 +24465,7 @@ define('ghost/templates/signup', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["inline","gh-input",[],["type","email","name","email","placeholder","Eg. john@example.com","enter",["subexpr","action",["signup"],[]],"disabled","disabled","autocorrect","off","value",["subexpr","@mut",[["get","model.email"]],[]],"focusOut",["subexpr","action",["handleEmail"],[]]]],
+          ["inline","gh-input",[],["type","email","name","email","placeholder","例如：wangwu@example.com","enter",["subexpr","action",["signup"],[]],"disabled","disabled","autocorrect","off","value",["subexpr","@mut",[["get","model.email"]],[]],"focusOut",["subexpr","action",["handleEmail"],[]]]],
           ["inline","gh-error-message",[],["errors",["subexpr","@mut",[["get","model.errors"]],[]],"property","email"]]
         ],
         locals: [],
@@ -23148,7 +24498,7 @@ define('ghost/templates/signup', ['exports'], function (exports) {
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("label");
           dom.setAttribute(el1,"for","full-name");
-          var el2 = dom.createTextNode("Full name");
+          var el2 = dom.createTextNode("姓名");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n                    ");
@@ -23177,7 +24527,7 @@ define('ghost/templates/signup', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["inline","gh-trim-focus-input",[],["tabindex","1","type","text","name","name","placeholder","Eg. John H. Watson","enter",["subexpr","action",["signup"],[]],"autocorrect","off","value",["subexpr","@mut",[["get","model.name"]],[]],"focusOut",["subexpr","action",["validate","name"],[]]]],
+          ["inline","gh-trim-focus-input",[],["tabindex","1","type","text","name","name","placeholder","例如：王五","enter",["subexpr","action",["signup"],[]],"autocorrect","off","value",["subexpr","@mut",[["get","model.name"]],[]],"focusOut",["subexpr","action",["validate","name"],[]]]],
           ["inline","gh-error-message",[],["errors",["subexpr","@mut",[["get","model.errors"]],[]],"property","name"]]
         ],
         locals: [],
@@ -23210,7 +24560,7 @@ define('ghost/templates/signup', ['exports'], function (exports) {
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("label");
           dom.setAttribute(el1,"for","password");
-          var el2 = dom.createTextNode("Password");
+          var el2 = dom.createTextNode("密码");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n                    ");
@@ -23258,7 +24608,7 @@ define('ghost/templates/signup', ['exports'], function (exports) {
             },
             "end": {
               "line": 38,
-              "column": 167
+              "column": 157
             }
           },
           "moduleName": "ghost/templates/signup.hbs"
@@ -23268,7 +24618,7 @@ define('ghost/templates/signup', ['exports'], function (exports) {
         hasRendered: false,
         buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("Create Account");
+          var el1 = dom.createTextNode("创建账户");
           dom.appendChild(el0, el1);
           return el0;
         },
@@ -23317,7 +24667,7 @@ define('ghost/templates/signup', ['exports'], function (exports) {
         var el5 = dom.createTextNode("\n                ");
         dom.appendChild(el4, el5);
         var el5 = dom.createElement("h1");
-        var el6 = dom.createTextNode("Create your account");
+        var el6 = dom.createTextNode("创建账户");
         dom.appendChild(el5, el6);
         dom.appendChild(el4, el5);
         var el5 = dom.createTextNode("\n            ");
@@ -23437,7 +24787,7 @@ define('ghost/templates/team/index', ['exports'], function (exports) {
         buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
           var el1 = dom.createElement("span");
-          var el2 = dom.createTextNode("Team");
+          var el2 = dom.createTextNode("用户列表");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           return el0;
@@ -23480,7 +24830,7 @@ define('ghost/templates/team/index', ['exports'], function (exports) {
           dom.appendChild(el1, el2);
           var el2 = dom.createElement("button");
           dom.setAttribute(el2,"class","btn btn-green");
-          var el3 = dom.createTextNode("Invite People");
+          var el3 = dom.createTextNode("邀请好友");
           dom.appendChild(el2, el3);
           dom.appendChild(el1, el2);
           var el2 = dom.createTextNode("\n            ");
@@ -23534,7 +24884,7 @@ define('ghost/templates/team/index', ['exports'], function (exports) {
                     dom.appendChild(el0, el1);
                     var el1 = dom.createElement("span");
                     dom.setAttribute(el1,"class","description-error");
-                    var el2 = dom.createTextNode("\n                                                Invitation not sent - please try again\n                                            ");
+                    var el2 = dom.createTextNode("\n                                                邀请未能成功发送 - 请重试\n                                            ");
                     dom.appendChild(el1, el2);
                     dom.appendChild(el0, el1);
                     var el1 = dom.createTextNode("\n");
@@ -23575,7 +24925,7 @@ define('ghost/templates/team/index', ['exports'], function (exports) {
                     dom.appendChild(el0, el1);
                     var el1 = dom.createElement("span");
                     dom.setAttribute(el1,"class","description");
-                    var el2 = dom.createTextNode("\n                                                Invitation sent: ");
+                    var el2 = dom.createTextNode("\n                                                邀请已发送：");
                     dom.appendChild(el1, el2);
                     var el2 = dom.createComment("");
                     dom.appendChild(el1, el2);
@@ -23623,7 +24973,7 @@ define('ghost/templates/team/index', ['exports'], function (exports) {
                     var el1 = dom.createTextNode("                                        ");
                     dom.appendChild(el0, el1);
                     var el1 = dom.createElement("span");
-                    var el2 = dom.createTextNode("Sending Invite...");
+                    var el2 = dom.createTextNode("正在发送邀请...");
                     dom.appendChild(el1, el2);
                     dom.appendChild(el0, el1);
                     var el1 = dom.createTextNode("\n");
@@ -23665,7 +25015,7 @@ define('ghost/templates/team/index', ['exports'], function (exports) {
                     var el1 = dom.createElement("a");
                     dom.setAttribute(el1,"class","user-list-action");
                     dom.setAttribute(el1,"href","#");
-                    var el2 = dom.createTextNode("\n                                            Revoke\n                                        ");
+                    var el2 = dom.createTextNode("\n                                            撤销\n                                        ");
                     dom.appendChild(el1, el2);
                     dom.appendChild(el0, el1);
                     var el1 = dom.createTextNode("\n                                        ");
@@ -23673,7 +25023,7 @@ define('ghost/templates/team/index', ['exports'], function (exports) {
                     var el1 = dom.createElement("a");
                     dom.setAttribute(el1,"class","user-list-action");
                     dom.setAttribute(el1,"href","#");
-                    var el2 = dom.createTextNode("\n                                            Resend\n                                        ");
+                    var el2 = dom.createTextNode("\n                                            重发\n                                        ");
                     dom.appendChild(el1, el2);
                     dom.appendChild(el0, el1);
                     var el1 = dom.createTextNode("\n");
@@ -23852,7 +25202,7 @@ define('ghost/templates/team/index', ['exports'], function (exports) {
               dom.appendChild(el1, el2);
               var el2 = dom.createElement("h4");
               dom.setAttribute(el2,"class","user-list-title");
-              var el3 = dom.createTextNode("Invited users");
+              var el3 = dom.createTextNode("已邀请的用户");
               dom.appendChild(el2, el3);
               dom.appendChild(el1, el2);
               var el2 = dom.createTextNode("\n");
@@ -24195,7 +25545,7 @@ define('ghost/templates/team/index', ['exports'], function (exports) {
           dom.appendChild(el1, el2);
           var el2 = dom.createElement("h4");
           dom.setAttribute(el2,"class","user-list-title");
-          var el3 = dom.createTextNode("Active users");
+          var el3 = dom.createTextNode("已加入的用户");
           dom.appendChild(el2, el3);
           dom.appendChild(el1, el2);
           var el2 = dom.createTextNode("\n");
@@ -24344,7 +25694,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["inline","link-to",["Team","team"],[]],
+          ["inline","link-to",["用户列表","team"],[]],
           ["content","user.name"]
         ],
         locals: [],
@@ -24383,7 +25733,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
             dom.appendChild(el0, el1);
             var el1 = dom.createElement("span");
             dom.setAttribute(el1,"class","hidden");
-            var el2 = dom.createTextNode("User Settings");
+            var el2 = dom.createTextNode("用户设置");
             dom.appendChild(el1, el2);
             dom.appendChild(el0, el1);
             var el1 = dom.createTextNode("\n");
@@ -24427,7 +25777,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
               var el2 = dom.createTextNode("\n                                ");
               dom.appendChild(el1, el2);
               var el2 = dom.createElement("button");
-              var el3 = dom.createTextNode("\n                                    Make Owner\n                                ");
+              var el3 = dom.createTextNode("\n                                    设为博客所有者\n                                ");
               dom.appendChild(el2, el3);
               dom.appendChild(el1, el2);
               var el2 = dom.createTextNode("\n                            ");
@@ -24479,7 +25829,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
               dom.appendChild(el1, el2);
               var el2 = dom.createElement("button");
               dom.setAttribute(el2,"class","delete");
-              var el3 = dom.createTextNode("\n                                    Delete User\n                                ");
+              var el3 = dom.createTextNode("\n                                    删除用户\n                                ");
               dom.appendChild(el2, el3);
               dom.appendChild(el1, el2);
               var el2 = dom.createTextNode("\n                            ");
@@ -24610,7 +25960,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
             },
             "end": {
               "line": 33,
-              "column": 92
+              "column": 90
             }
           },
           "moduleName": "ghost/templates/team/user.hbs"
@@ -24620,7 +25970,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
         hasRendered: false,
         buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("Save");
+          var el1 = dom.createTextNode("保存");
           dom.appendChild(el0, el1);
           return el0;
         },
@@ -24700,7 +26050,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
             var el1 = dom.createTextNode("                        ");
             dom.appendChild(el0, el1);
             var el1 = dom.createElement("p");
-            var el2 = dom.createTextNode("Use your real name so people can recognise you");
+            var el2 = dom.createTextNode("真实姓名能让大家更容易记住你");
             dom.appendChild(el1, el2);
             dom.appendChild(el0, el1);
             var el1 = dom.createTextNode("\n");
@@ -24740,7 +26090,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("label");
           dom.setAttribute(el1,"for","user-name");
-          var el2 = dom.createTextNode("Full Name");
+          var el2 = dom.createTextNode("姓名");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n                    ");
@@ -24761,7 +26111,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["inline","input",[],["value",["subexpr","@mut",[["get","user.name"]],[]],"id","user-name","class","gh-input user-name","placeholder","Full Name","autocorrect","off","focusOut",["subexpr","action",["validate","name"],[]]]],
+          ["inline","input",[],["value",["subexpr","@mut",[["get","user.name"]],[]],"id","user-name","class","gh-input user-name","placeholder","姓名","autocorrect","off","focusOut",["subexpr","action",["validate","name"],[]]]],
           ["block","if",[["get","user.errors.name"]],[],0,1]
         ],
         locals: [],
@@ -24794,7 +26144,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("label");
           dom.setAttribute(el1,"for","user-slug");
-          var el2 = dom.createTextNode("Slug");
+          var el2 = dom.createTextNode("个性网址");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n                    ");
@@ -24880,7 +26230,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["inline","input",[],["type","email","value",["subexpr","@mut",[["get","user.email"]],[]],"id","user-email","name","email","class","gh-input","placeholder","Email Address","autocapitalize","off","autocorrect","off","autocomplete","off","focusOut",["subexpr","action",["validate","email"],[]]]],
+            ["inline","input",[],["type","email","value",["subexpr","@mut",[["get","user.email"]],[]],"id","user-email","name","email","class","gh-input","placeholder","邮箱地址","autocapitalize","off","autocorrect","off","autocomplete","off","focusOut",["subexpr","action",["validate","email"],[]]]],
             ["inline","gh-error-message",[],["errors",["subexpr","@mut",[["get","user.errors"]],[]],"property","email"]]
           ],
           locals: [],
@@ -24956,7 +26306,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("label");
           dom.setAttribute(el1,"for","user-email");
-          var el2 = dom.createTextNode("Email");
+          var el2 = dom.createTextNode("邮箱地址");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n");
@@ -24966,7 +26316,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
           var el1 = dom.createTextNode("                    ");
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("p");
-          var el2 = dom.createTextNode("Used for notifications");
+          var el2 = dom.createTextNode("用于接收通知");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n");
@@ -25033,7 +26383,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
           var el2 = dom.createTextNode("\n                        ");
           dom.appendChild(el1, el2);
           var el2 = dom.createElement("p");
-          var el3 = dom.createTextNode("What permissions should this user have?");
+          var el3 = dom.createTextNode("为此用户设置权限。");
           dom.appendChild(el2, el3);
           dom.appendChild(el1, el2);
           var el2 = dom.createTextNode("\n                    ");
@@ -25081,7 +26431,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("label");
           dom.setAttribute(el1,"for","user-location");
-          var el2 = dom.createTextNode("Location");
+          var el2 = dom.createTextNode("位置");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n                    ");
@@ -25095,7 +26445,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
           var el1 = dom.createTextNode("\n                    ");
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("p");
-          var el2 = dom.createTextNode("Where in the world do you live?");
+          var el2 = dom.createTextNode("你在哪儿？");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n");
@@ -25142,7 +26492,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("label");
           dom.setAttribute(el1,"for","user-website");
-          var el2 = dom.createTextNode("Website");
+          var el2 = dom.createTextNode("网站");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n                    ");
@@ -25156,7 +26506,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
           var el1 = dom.createTextNode("\n                    ");
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("p");
-          var el2 = dom.createTextNode("Have a website or blog other than this one? Link it!");
+          var el2 = dom.createTextNode("还有其他的网站或博客吗？展告诉大家吧！");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n");
@@ -25203,7 +26553,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("label");
           dom.setAttribute(el1,"for","user-bio");
-          var el2 = dom.createTextNode("Bio");
+          var el2 = dom.createTextNode("个人简介");
           dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n                    ");
@@ -25217,7 +26567,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
           var el1 = dom.createTextNode("\n                    ");
           dom.appendChild(el0, el1);
           var el1 = dom.createElement("p");
-          var el2 = dom.createTextNode("\n                        Write about you, in 200 characters or less.\n                        ");
+          var el2 = dom.createTextNode("\n                        介绍一下你自己吧，不要超过 200 字。\n                        ");
           dom.appendChild(el1, el2);
           var el2 = dom.createComment("");
           dom.appendChild(el1, el2);
@@ -25275,7 +26625,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
             dom.appendChild(el1, el2);
             var el2 = dom.createElement("label");
             dom.setAttribute(el2,"for","user-password-old");
-            var el3 = dom.createTextNode("Old Password");
+            var el3 = dom.createTextNode("原密码");
             dom.appendChild(el2, el3);
             dom.appendChild(el1, el2);
             var el2 = dom.createTextNode("\n                        ");
@@ -25337,7 +26687,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
           dom.appendChild(el2, el3);
           var el3 = dom.createElement("label");
           dom.setAttribute(el3,"for","user-password-new");
-          var el4 = dom.createTextNode("New Password");
+          var el4 = dom.createTextNode("新密码");
           dom.appendChild(el3, el4);
           dom.appendChild(el2, el3);
           var el3 = dom.createTextNode("\n                        ");
@@ -25355,7 +26705,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
           dom.appendChild(el2, el3);
           var el3 = dom.createElement("label");
           dom.setAttribute(el3,"for","user-new-password-verification");
-          var el4 = dom.createTextNode("Verify Password");
+          var el4 = dom.createTextNode("再次输入新密码");
           dom.appendChild(el3, el4);
           dom.appendChild(el2, el3);
           var el3 = dom.createTextNode("\n                        ");
@@ -25374,7 +26724,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
           var el3 = dom.createElement("button");
           dom.setAttribute(el3,"type","button");
           dom.setAttribute(el3,"class","btn btn-red button-change-password");
-          var el4 = dom.createTextNode("Change Password");
+          var el4 = dom.createTextNode("修改密码");
           dom.appendChild(el3, el4);
           dom.appendChild(el2, el3);
           var el3 = dom.createTextNode("\n                    ");
@@ -25468,7 +26818,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
         dom.appendChild(el3, el4);
         var el4 = dom.createElement("button");
         dom.setAttribute(el4,"class","btn btn-default user-cover-edit js-modal-cover");
-        var el5 = dom.createTextNode("Change Cover");
+        var el5 = dom.createTextNode("修改封面图");
         dom.appendChild(el4, el5);
         dom.appendChild(el3, el4);
         var el4 = dom.createTextNode("\n        ");
@@ -25520,7 +26870,7 @@ define('ghost/templates/team/user', ['exports'], function (exports) {
         var el6 = dom.createElement("button");
         dom.setAttribute(el6,"type","button");
         dom.setAttribute(el6,"class","edit-user-image js-modal-image");
-        var el7 = dom.createTextNode("Edit Picture");
+        var el7 = dom.createTextNode("编辑图片");
         dom.appendChild(el6, el7);
         dom.appendChild(el5, el6);
         var el6 = dom.createTextNode("\n                ");
@@ -25655,13 +27005,10 @@ define('ghost/tests/helpers/resolver', ['exports', 'ember/resolver', 'ghost/conf
     exports['default'] = resolver;
 
 });
-define('ghost/tests/helpers/start-app', ['exports', 'ember', 'ghost/app', 'ghost/config/environment'], function (exports, Ember, Application, config) {
+define('ghost/tests/helpers/start-app', ['exports', 'ember', 'ghost/app', 'ghost/router', 'ghost/config/environment'], function (exports, Ember, Application, Router, config) {
 
     'use strict';
 
-
-
-    exports['default'] = startApp;
     function startApp(attrs) {
         var application,
             attributes = Ember['default'].merge({}, config['default'].APP);
@@ -25677,1607 +27024,7 @@ define('ghost/tests/helpers/start-app', ['exports', 'ember', 'ghost/app', 'ghost
         return application;
     }
 
-});
-define('ghost/tests/integration/components/gh-navigation-test', ['chai', 'ember-mocha', 'ember', 'ghost/controllers/settings/navigation'], function (chai, ember_mocha, Ember, navigation) {
-
-    'use strict';
-
-    /* jshint expr:true */
-    var run = Ember['default'].run;
-
-    ember_mocha.describeComponent('gh-navigation', 'Integration : Component : gh-navigation', {
-        integration: true
-    }, function () {
-        ember_mocha.it('renders', function () {
-            this.render(Ember['default'].HTMLBars.template((function () {
-                var child0 = (function () {
-                    return {
-                        meta: {
-                            'revision': 'Ember@1.13.2',
-                            'loc': {
-                                'source': null,
-                                'start': {
-                                    'line': 1,
-                                    'column': 0
-                                },
-                                'end': {
-                                    'line': 1,
-                                    'column': 86
-                                }
-                            }
-                        },
-                        arity: 0,
-                        cachedFragment: null,
-                        hasRendered: false,
-                        buildFragment: function buildFragment(dom) {
-                            var el0 = dom.createDocumentFragment();
-                            var el1 = dom.createElement('div');
-                            dom.setAttribute(el1, 'class', 'js-gh-blognav');
-                            var el2 = dom.createElement('div');
-                            dom.setAttribute(el2, 'class', 'gh-blognav-item');
-                            dom.appendChild(el1, el2);
-                            dom.appendChild(el0, el1);
-                            return el0;
-                        },
-                        buildRenderNodes: function buildRenderNodes() {
-                            return [];
-                        },
-                        statements: [],
-                        locals: [],
-                        templates: []
-                    };
-                })();
-
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 1,
-                                'column': 104
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 0, 0, contextualElement);
-                        dom.insertBoundary(fragment, 0);
-                        dom.insertBoundary(fragment, null);
-                        return morphs;
-                    },
-                    statements: [['block', 'gh-navigation', [], [], 0, null]],
-                    locals: [],
-                    templates: [child0]
-                };
-            })()));
-            chai.expect(this.$('section.gh-view')).to.have.length(1);
-            chai.expect(this.$('.ui-sortable')).to.have.length(1);
-        });
-
-        ember_mocha.it('triggers reorder action', function () {
-            var _this = this;
-
-            var navItems = [],
-                expectedOldIndex = -1,
-                expectedNewIndex = -1;
-
-            navItems.pushObject(navigation.NavItem.create({ label: 'First', url: '/first' }));
-            navItems.pushObject(navigation.NavItem.create({ label: 'Second', url: '/second' }));
-            navItems.pushObject(navigation.NavItem.create({ label: 'Third', url: '/third' }));
-            navItems.pushObject(navigation.NavItem.create({ label: '', url: '', last: true }));
-            this.set('navigationItems', navItems);
-            this.set('blogUrl', 'http://localhost:2368');
-
-            this.on('moveItem', function (oldIndex, newIndex) {
-                chai.expect(oldIndex).to.equal(expectedOldIndex);
-                chai.expect(newIndex).to.equal(expectedNewIndex);
-            });
-
-            run(function () {
-                _this.render(Ember['default'].HTMLBars.template((function () {
-                    var child0 = (function () {
-                        var child0 = (function () {
-                            return {
-                                meta: {
-                                    'revision': 'Ember@1.13.2',
-                                    'loc': {
-                                        'source': null,
-                                        'start': {
-                                            'line': 4,
-                                            'column': 24
-                                        },
-                                        'end': {
-                                            'line': 6,
-                                            'column': 24
-                                        }
-                                    }
-                                },
-                                arity: 1,
-                                cachedFragment: null,
-                                hasRendered: false,
-                                buildFragment: function buildFragment(dom) {
-                                    var el0 = dom.createDocumentFragment();
-                                    var el1 = dom.createTextNode('                            ');
-                                    dom.appendChild(el0, el1);
-                                    var el1 = dom.createComment('');
-                                    dom.appendChild(el0, el1);
-                                    var el1 = dom.createTextNode('\n');
-                                    dom.appendChild(el0, el1);
-                                    return el0;
-                                },
-                                buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                                    var morphs = new Array(1);
-                                    morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
-                                    return morphs;
-                                },
-                                statements: [['inline', 'gh-navitem', [], ['navItem', ['subexpr', '@mut', [['get', 'navItem']], []], 'baseUrl', ['subexpr', '@mut', [['get', 'blogUrl']], []], 'addItem', 'addItem', 'deleteItem', 'deleteItem', 'updateUrl', 'updateUrl']]],
-                                locals: ['navItem'],
-                                templates: []
-                            };
-                        })();
-
-                        return {
-                            meta: {
-                                'revision': 'Ember@1.13.2',
-                                'loc': {
-                                    'source': null,
-                                    'start': {
-                                        'line': 2,
-                                        'column': 16
-                                    },
-                                    'end': {
-                                        'line': 8,
-                                        'column': 16
-                                    }
-                                }
-                            },
-                            arity: 0,
-                            cachedFragment: null,
-                            hasRendered: false,
-                            buildFragment: function buildFragment(dom) {
-                                var el0 = dom.createDocumentFragment();
-                                var el1 = dom.createTextNode('                    ');
-                                dom.appendChild(el0, el1);
-                                var el1 = dom.createElement('form');
-                                dom.setAttribute(el1, 'id', 'settings-navigation');
-                                dom.setAttribute(el1, 'class', 'gh-blognav js-gh-blognav');
-                                dom.setAttribute(el1, 'novalidate', 'novalidate');
-                                var el2 = dom.createTextNode('\n');
-                                dom.appendChild(el1, el2);
-                                var el2 = dom.createComment('');
-                                dom.appendChild(el1, el2);
-                                var el2 = dom.createTextNode('                    ');
-                                dom.appendChild(el1, el2);
-                                dom.appendChild(el0, el1);
-                                var el1 = dom.createTextNode('\n');
-                                dom.appendChild(el0, el1);
-                                return el0;
-                            },
-                            buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                                var morphs = new Array(1);
-                                morphs[0] = dom.createMorphAt(dom.childAt(fragment, [1]), 1, 1);
-                                return morphs;
-                            },
-                            statements: [['block', 'each', [['get', 'navigationItems']], [], 0, null]],
-                            locals: [],
-                            templates: [child0]
-                        };
-                    })();
-
-                    return {
-                        meta: {
-                            'revision': 'Ember@1.13.2',
-                            'loc': {
-                                'source': null,
-                                'start': {
-                                    'line': 1,
-                                    'column': 0
-                                },
-                                'end': {
-                                    'line': 8,
-                                    'column': 34
-                                }
-                            }
-                        },
-                        arity: 0,
-                        cachedFragment: null,
-                        hasRendered: false,
-                        buildFragment: function buildFragment(dom) {
-                            var el0 = dom.createDocumentFragment();
-                            var el1 = dom.createTextNode('\n');
-                            dom.appendChild(el0, el1);
-                            var el1 = dom.createComment('');
-                            dom.appendChild(el0, el1);
-                            return el0;
-                        },
-                        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                            var morphs = new Array(1);
-                            morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
-                            dom.insertBoundary(fragment, null);
-                            return morphs;
-                        },
-                        statements: [['block', 'gh-navigation', [], ['moveItem', 'moveItem'], 0, null]],
-                        locals: [],
-                        templates: [child0]
-                    };
-                })()));
-            });
-
-            // check it renders the nav item rows
-            chai.expect(this.$('.gh-blognav-item')).to.have.length(4);
-
-            // move second item up one
-            expectedOldIndex = 1;
-            expectedNewIndex = 0;
-            Ember['default'].$(this.$('.gh-blognav-item')[1]).simulateDragSortable({
-                move: -1,
-                handle: '.gh-blognav-grab'
-            });
-
-            // move second item down one
-            expectedOldIndex = 1;
-            expectedNewIndex = 2;
-            Ember['default'].$(this.$('.gh-blognav-item')[1]).simulateDragSortable({
-                move: 1,
-                handle: '.gh-blognav-grab'
-            });
-        });
-    });
-
-});
-define('ghost/tests/integration/components/gh-navitem-test', ['chai', 'ember-mocha', 'ember', 'ghost/controllers/settings/navigation'], function (chai, ember_mocha, Ember, navigation) {
-
-    'use strict';
-
-    /* jshint expr:true */
-    var run = Ember['default'].run;
-
-    ember_mocha.describeComponent('gh-navitem', 'Integration : Component : gh-navitem', {
-        integration: true
-    }, function () {
-        beforeEach(function () {
-            this.set('baseUrl', 'http://localhost:2368');
-        });
-
-        ember_mocha.it('renders', function () {
-            this.set('navItem', navigation.NavItem.create({ label: 'Test', url: '/url' }));
-
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 1,
-                                'column': 46
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 0, 0, contextualElement);
-                        dom.insertBoundary(fragment, 0);
-                        dom.insertBoundary(fragment, null);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem', [], ['navItem', ['subexpr', '@mut', [['get', 'navItem']], []], 'baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []]]]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            var $item = this.$('.gh-blognav-item');
-
-            chai.expect($item.find('.gh-blognav-grab').length).to.equal(1);
-            chai.expect($item.find('.gh-blognav-label').length).to.equal(1);
-            chai.expect($item.find('.gh-blognav-url').length).to.equal(1);
-            chai.expect($item.find('.gh-blognav-delete').length).to.equal(1);
-
-            // doesn't show any errors
-            chai.expect($item.hasClass('gh-blognav-item--error')).to.be['false'];
-            chai.expect($item.find('.error').length).to.equal(0);
-            chai.expect($item.find('.response:visible').length).to.equal(0);
-        });
-
-        ember_mocha.it('doesn\'t show drag handle for last item', function () {
-            this.set('navItem', navigation.NavItem.create({ label: 'Test', url: '/url', last: true }));
-
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 1,
-                                'column': 46
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 0, 0, contextualElement);
-                        dom.insertBoundary(fragment, 0);
-                        dom.insertBoundary(fragment, null);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem', [], ['navItem', ['subexpr', '@mut', [['get', 'navItem']], []], 'baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []]]]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            var $item = this.$('.gh-blognav-item');
-
-            chai.expect($item.find('.gh-blognav-grab').length).to.equal(0);
-        });
-
-        ember_mocha.it('shows add button for last item', function () {
-            this.set('navItem', navigation.NavItem.create({ label: 'Test', url: '/url', last: true }));
-
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 1,
-                                'column': 46
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 0, 0, contextualElement);
-                        dom.insertBoundary(fragment, 0);
-                        dom.insertBoundary(fragment, null);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem', [], ['navItem', ['subexpr', '@mut', [['get', 'navItem']], []], 'baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []]]]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            var $item = this.$('.gh-blognav-item');
-
-            chai.expect($item.find('.gh-blognav-add').length).to.equal(1);
-            chai.expect($item.find('.gh-blognav-delete').length).to.equal(0);
-        });
-
-        ember_mocha.it('triggers delete action', function () {
-            var _this = this;
-
-            this.set('navItem', navigation.NavItem.create({ label: 'Test', url: '/url' }));
-
-            var deleteActionCallCount = 0;
-            this.on('deleteItem', function (navItem) {
-                chai.expect(navItem).to.equal(_this.get('navItem'));
-                deleteActionCallCount++;
-            });
-
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 1,
-                                'column': 70
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 0, 0, contextualElement);
-                        dom.insertBoundary(fragment, 0);
-                        dom.insertBoundary(fragment, null);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem', [], ['navItem', ['subexpr', '@mut', [['get', 'navItem']], []], 'baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []], 'deleteItem', 'deleteItem']]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            this.$('.gh-blognav-delete').trigger('click');
-
-            chai.expect(deleteActionCallCount).to.equal(1);
-        });
-
-        ember_mocha.it('triggers add action', function () {
-            this.set('navItem', navigation.NavItem.create({ label: 'Test', url: '/url', last: true }));
-
-            var addActionCallCount = 0;
-            this.on('add', function () {
-                addActionCallCount++;
-            });
-
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 1,
-                                'column': 60
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 0, 0, contextualElement);
-                        dom.insertBoundary(fragment, 0);
-                        dom.insertBoundary(fragment, null);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem', [], ['navItem', ['subexpr', '@mut', [['get', 'navItem']], []], 'baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []], 'addItem', 'add']]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            this.$('.gh-blognav-add').trigger('click');
-
-            chai.expect(addActionCallCount).to.equal(1);
-        });
-
-        ember_mocha.it('triggers update action', function () {
-            this.set('navItem', navigation.NavItem.create({ label: 'Test', url: '/url' }));
-
-            var updateActionCallCount = 0;
-            this.on('update', function () {
-                updateActionCallCount++;
-            });
-
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 1,
-                                'column': 65
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 0, 0, contextualElement);
-                        dom.insertBoundary(fragment, 0);
-                        dom.insertBoundary(fragment, null);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem', [], ['navItem', ['subexpr', '@mut', [['get', 'navItem']], []], 'baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []], 'updateUrl', 'update']]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            this.$('.gh-blognav-url input').trigger('blur');
-
-            chai.expect(updateActionCallCount).to.equal(1);
-        });
-
-        ember_mocha.it('displays inline errors', function () {
-            this.set('navItem', navigation.NavItem.create({ label: '', url: '' }));
-            this.get('navItem').validate();
-
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 1,
-                                'column': 46
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 0, 0, contextualElement);
-                        dom.insertBoundary(fragment, 0);
-                        dom.insertBoundary(fragment, null);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem', [], ['navItem', ['subexpr', '@mut', [['get', 'navItem']], []], 'baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []]]]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            var $item = this.$('.gh-blognav-item');
-
-            chai.expect($item.hasClass('gh-blognav-item--error')).to.be['true'];
-            chai.expect($item.find('.gh-blognav-label').hasClass('error')).to.be['true'];
-            chai.expect($item.find('.gh-blognav-label .response').text().trim()).to.equal('You must specify a label');
-            chai.expect($item.find('.gh-blognav-url').hasClass('error')).to.be['true'];
-            chai.expect($item.find('.gh-blognav-url .response').text().trim()).to.equal('You must specify a URL or relative path');
-        });
-    });
-
-});
-define('ghost/tests/integration/components/gh-navitem-url-input-test', ['chai', 'ember-mocha', 'ember'], function (chai, ember_mocha, Ember) {
-
-    'use strict';
-
-    /* jshint scripturl:true */
-    var run = Ember['default'].run;
-    // we want baseUrl to match the running domain so relative URLs are
-    // handled as expected (browser auto-sets the domain when using a.href)
-    var currentUrl = window.location.protocol + '//' + window.location.host + '/';
-
-    ember_mocha.describeComponent('gh-navitem-url-input', 'Integration : Component : gh-navitem-url-input', {
-        integration: true
-    }, function () {
-        beforeEach(function () {
-            // set defaults
-            this.set('baseUrl', currentUrl);
-            this.set('url', '');
-            this.set('isLast', false);
-        });
-
-        ember_mocha.it('renders correctly with blank url', function () {
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 3,
-                                'column': 12
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createTextNode('\n                ');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createTextNode('\n            ');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem-url-input', [], ['baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []], 'url', ['subexpr', '@mut', [['get', 'url']], []], 'last', ['subexpr', '@mut', [['get', 'isLast']], []], 'change', 'updateUrl']]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            var $input = this.$('input');
-
-            chai.expect($input).to.have.length(1);
-            chai.expect($input.hasClass('gh-input')).to.be['true'];
-            chai.expect($input.val()).to.equal(currentUrl);
-        });
-
-        ember_mocha.it('renders correctly with relative urls', function () {
-            this.set('url', '/about');
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 3,
-                                'column': 12
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createTextNode('\n                ');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createTextNode('\n            ');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem-url-input', [], ['baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []], 'url', ['subexpr', '@mut', [['get', 'url']], []], 'last', ['subexpr', '@mut', [['get', 'isLast']], []], 'change', 'updateUrl']]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            var $input = this.$('input');
-
-            chai.expect($input.val()).to.equal(currentUrl + 'about');
-
-            this.set('url', '/about#contact');
-            chai.expect($input.val()).to.equal(currentUrl + 'about#contact');
-        });
-
-        ember_mocha.it('renders correctly with absolute urls', function () {
-            this.set('url', 'https://example.com:2368/#test');
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 3,
-                                'column': 12
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createTextNode('\n                ');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createTextNode('\n            ');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem-url-input', [], ['baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []], 'url', ['subexpr', '@mut', [['get', 'url']], []], 'last', ['subexpr', '@mut', [['get', 'isLast']], []], 'change', 'updateUrl']]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            var $input = this.$('input');
-
-            chai.expect($input.val()).to.equal('https://example.com:2368/#test');
-
-            this.set('url', 'mailto:test@example.com');
-            chai.expect($input.val()).to.equal('mailto:test@example.com');
-
-            this.set('url', 'tel:01234-5678-90');
-            chai.expect($input.val()).to.equal('tel:01234-5678-90');
-
-            this.set('url', '//protocol-less-url.com');
-            chai.expect($input.val()).to.equal('//protocol-less-url.com');
-
-            this.set('url', '#anchor');
-            chai.expect($input.val()).to.equal('#anchor');
-        });
-
-        ember_mocha.it('deletes base URL on backspace', function () {
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 3,
-                                'column': 12
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createTextNode('\n                ');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createTextNode('\n            ');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem-url-input', [], ['baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []], 'url', ['subexpr', '@mut', [['get', 'url']], []], 'last', ['subexpr', '@mut', [['get', 'isLast']], []], 'change', 'updateUrl']]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            var $input = this.$('input');
-
-            chai.expect($input.val()).to.equal(currentUrl);
-            run(function () {
-                // TODO: why is ember's keyEvent helper not available here?
-                var e = Ember['default'].$.Event('keydown');
-                e.keyCode = 8;
-                $input.trigger(e);
-            });
-            chai.expect($input.val()).to.equal('');
-        });
-
-        ember_mocha.it('deletes base URL on delete', function () {
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 3,
-                                'column': 12
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createTextNode('\n                ');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createTextNode('\n            ');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem-url-input', [], ['baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []], 'url', ['subexpr', '@mut', [['get', 'url']], []], 'last', ['subexpr', '@mut', [['get', 'isLast']], []], 'change', 'updateUrl']]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            var $input = this.$('input');
-
-            chai.expect($input.val()).to.equal(currentUrl);
-            run(function () {
-                // TODO: why is ember's keyEvent helper not available here?
-                var e = Ember['default'].$.Event('keydown');
-                e.keyCode = 46;
-                $input.trigger(e);
-            });
-            chai.expect($input.val()).to.equal('');
-        });
-
-        ember_mocha.it('adds base url to relative urls on blur', function () {
-            this.on('updateUrl', function () {
-                return null;
-            });
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 3,
-                                'column': 12
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createTextNode('\n                ');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createTextNode('\n            ');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem-url-input', [], ['baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []], 'url', ['subexpr', '@mut', [['get', 'url']], []], 'last', ['subexpr', '@mut', [['get', 'isLast']], []], 'change', 'updateUrl']]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            var $input = this.$('input');
-
-            run(function () {
-                $input.val('/about').trigger('input');
-            });
-            run(function () {
-                $input.trigger('blur');
-            });
-
-            chai.expect($input.val()).to.equal(currentUrl + 'about');
-        });
-
-        ember_mocha.it('adds "mailto:" to e-mail addresses on blur', function () {
-            this.on('updateUrl', function () {
-                return null;
-            });
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 3,
-                                'column': 12
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createTextNode('\n                ');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createTextNode('\n            ');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem-url-input', [], ['baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []], 'url', ['subexpr', '@mut', [['get', 'url']], []], 'last', ['subexpr', '@mut', [['get', 'isLast']], []], 'change', 'updateUrl']]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            var $input = this.$('input');
-
-            run(function () {
-                $input.val('test@example.com').trigger('input');
-            });
-            run(function () {
-                $input.trigger('blur');
-            });
-
-            chai.expect($input.val()).to.equal('mailto:test@example.com');
-
-            // ensure we don't double-up on the mailto:
-            run(function () {
-                $input.trigger('blur');
-            });
-            chai.expect($input.val()).to.equal('mailto:test@example.com');
-        });
-
-        ember_mocha.it('doesn\'t add base url to invalid urls on blur', function () {
-            this.on('updateUrl', function () {
-                return null;
-            });
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 3,
-                                'column': 12
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createTextNode('\n                ');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createTextNode('\n            ');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem-url-input', [], ['baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []], 'url', ['subexpr', '@mut', [['get', 'url']], []], 'last', ['subexpr', '@mut', [['get', 'isLast']], []], 'change', 'updateUrl']]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            var $input = this.$('input');
-
-            var changeValue = function changeValue(value) {
-                run(function () {
-                    $input.val(value).trigger('input').trigger('blur');
-                });
-            };
-
-            changeValue('with spaces');
-            chai.expect($input.val()).to.equal('with spaces');
-
-            changeValue('/with spaces');
-            chai.expect($input.val()).to.equal('/with spaces');
-        });
-
-        ember_mocha.it('doesn\'t mangle invalid urls on blur', function () {
-            this.on('updateUrl', function () {
-                return null;
-            });
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 3,
-                                'column': 12
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createTextNode('\n                ');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createTextNode('\n            ');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem-url-input', [], ['baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []], 'url', ['subexpr', '@mut', [['get', 'url']], []], 'last', ['subexpr', '@mut', [['get', 'isLast']], []], 'change', 'updateUrl']]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            var $input = this.$('input');
-
-            run(function () {
-                $input.val(currentUrl + ' /test').trigger('input').trigger('blur');
-            });
-
-            chai.expect($input.val()).to.equal(currentUrl + ' /test');
-        });
-
-        ember_mocha.it('toggles .fake-placeholder on focus', function () {
-            this.set('isLast', true);
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 3,
-                                'column': 12
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createTextNode('\n                ');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createTextNode('\n            ');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem-url-input', [], ['baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []], 'url', ['subexpr', '@mut', [['get', 'url']], []], 'last', ['subexpr', '@mut', [['get', 'isLast']], []], 'change', 'updateUrl']]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            var $input = this.$('input');
-
-            chai.expect($input.hasClass('fake-placeholder')).to.be['true'];
-
-            run(function () {
-                $input.trigger('focus');
-            });
-            chai.expect($input.hasClass('fake-placeholder')).to.be['false'];
-        });
-
-        ember_mocha.it('triggers "change" action on blur', function () {
-            var changeActionCallCount = 0;
-            this.on('updateUrl', function () {
-                changeActionCallCount++;
-            });
-
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 3,
-                                'column': 12
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createTextNode('\n                ');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createTextNode('\n            ');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem-url-input', [], ['baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []], 'url', ['subexpr', '@mut', [['get', 'url']], []], 'last', ['subexpr', '@mut', [['get', 'isLast']], []], 'change', 'updateUrl']]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            var $input = this.$('input');
-
-            $input.trigger('blur');
-
-            chai.expect(changeActionCallCount).to.equal(1);
-        });
-
-        ember_mocha.it('triggers "change" action on enter', function () {
-            var changeActionCallCount = 0;
-            this.on('updateUrl', function () {
-                changeActionCallCount++;
-            });
-
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 3,
-                                'column': 12
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createTextNode('\n                ');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createTextNode('\n            ');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem-url-input', [], ['baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []], 'url', ['subexpr', '@mut', [['get', 'url']], []], 'last', ['subexpr', '@mut', [['get', 'isLast']], []], 'change', 'updateUrl']]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            var $input = this.$('input');
-
-            run(function () {
-                // TODO: why is ember's keyEvent helper not available here?
-                var e = Ember['default'].$.Event('keypress');
-                e.keyCode = 13;
-                $input.trigger(e);
-            });
-
-            chai.expect(changeActionCallCount).to.equal(1);
-        });
-
-        ember_mocha.it('triggers "change" action on CMD-S', function () {
-            var changeActionCallCount = 0;
-            this.on('updateUrl', function () {
-                changeActionCallCount++;
-            });
-
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 3,
-                                'column': 12
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createTextNode('\n                ');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createTextNode('\n            ');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem-url-input', [], ['baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []], 'url', ['subexpr', '@mut', [['get', 'url']], []], 'last', ['subexpr', '@mut', [['get', 'isLast']], []], 'change', 'updateUrl']]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            var $input = this.$('input');
-
-            run(function () {
-                // TODO: why is ember's keyEvent helper not available here?
-                var e = Ember['default'].$.Event('keydown');
-                e.keyCode = 83;
-                e.metaKey = true;
-                $input.trigger(e);
-            });
-
-            chai.expect(changeActionCallCount).to.equal(1);
-        });
-
-        ember_mocha.it('sends absolute urls straight through to change action', function () {
-            var expectedUrl = '';
-
-            this.on('updateUrl', function (url) {
-                chai.expect(url).to.equal(expectedUrl);
-            });
-
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 3,
-                                'column': 12
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createTextNode('\n                ');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createTextNode('\n            ');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem-url-input', [], ['baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []], 'url', ['subexpr', '@mut', [['get', 'url']], []], 'last', ['subexpr', '@mut', [['get', 'isLast']], []], 'change', 'updateUrl']]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            var $input = this.$('input');
-
-            var testUrl = function testUrl(url) {
-                expectedUrl = url;
-                run(function () {
-                    $input.val(url).trigger('input');
-                });
-                run(function () {
-                    $input.trigger('blur');
-                });
-            };
-
-            testUrl('http://example.com');
-            testUrl('http://example.com/');
-            testUrl('https://example.com');
-            testUrl('//example.com');
-            testUrl('//localhost:1234');
-            testUrl('#anchor');
-            testUrl('mailto:test@example.com');
-            testUrl('tel:12345-567890');
-            testUrl('javascript:alert("testing");');
-        });
-
-        ember_mocha.it('strips base url from relative urls before sending to change action', function () {
-            var expectedUrl = '';
-
-            this.on('updateUrl', function (url) {
-                chai.expect(url).to.equal(expectedUrl);
-            });
-
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 3,
-                                'column': 12
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createTextNode('\n                ');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createTextNode('\n            ');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem-url-input', [], ['baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []], 'url', ['subexpr', '@mut', [['get', 'url']], []], 'last', ['subexpr', '@mut', [['get', 'isLast']], []], 'change', 'updateUrl']]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            var $input = this.$('input');
-
-            var testUrl = function testUrl(url) {
-                expectedUrl = '/' + url;
-                run(function () {
-                    $input.val('' + currentUrl + url).trigger('input');
-                });
-                run(function () {
-                    $input.trigger('blur');
-                });
-            };
-
-            testUrl('about');
-            testUrl('about#contact');
-            testUrl('test/nested');
-        });
-
-        ember_mocha.it('handles a baseUrl with a path component', function () {
-            var expectedUrl = '';
-
-            this.set('baseUrl', currentUrl + 'blog/');
-
-            this.on('updateUrl', function (url) {
-                chai.expect(url).to.equal(expectedUrl);
-            });
-
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 3,
-                                'column': 12
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createTextNode('\n                ');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createTextNode('\n            ');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem-url-input', [], ['baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []], 'url', ['subexpr', '@mut', [['get', 'url']], []], 'last', ['subexpr', '@mut', [['get', 'isLast']], []], 'change', 'updateUrl']]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            var $input = this.$('input');
-
-            var testUrl = function testUrl(url) {
-                expectedUrl = url;
-                run(function () {
-                    $input.val(currentUrl + 'blog' + url).trigger('input');
-                });
-                run(function () {
-                    $input.trigger('blur');
-                });
-            };
-
-            testUrl('/about');
-            testUrl('/about#contact');
-            testUrl('/test/nested');
-        });
-
-        ember_mocha.it('handles links to subdomains of blog domain', function () {
-            var expectedUrl = '';
-
-            this.set('baseUrl', 'http://example.com/');
-
-            this.on('updateUrl', function (url) {
-                chai.expect(url).to.equal(expectedUrl);
-            });
-
-            this.render(Ember['default'].HTMLBars.template((function () {
-                return {
-                    meta: {
-                        'revision': 'Ember@1.13.2',
-                        'loc': {
-                            'source': null,
-                            'start': {
-                                'line': 1,
-                                'column': 0
-                            },
-                            'end': {
-                                'line': 3,
-                                'column': 12
-                            }
-                        }
-                    },
-                    arity: 0,
-                    cachedFragment: null,
-                    hasRendered: false,
-                    buildFragment: function buildFragment(dom) {
-                        var el0 = dom.createDocumentFragment();
-                        var el1 = dom.createTextNode('\n                ');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createComment('');
-                        dom.appendChild(el0, el1);
-                        var el1 = dom.createTextNode('\n            ');
-                        dom.appendChild(el0, el1);
-                        return el0;
-                    },
-                    buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-                        var morphs = new Array(1);
-                        morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
-                        return morphs;
-                    },
-                    statements: [['inline', 'gh-navitem-url-input', [], ['baseUrl', ['subexpr', '@mut', [['get', 'baseUrl']], []], 'url', ['subexpr', '@mut', [['get', 'url']], []], 'last', ['subexpr', '@mut', [['get', 'isLast']], []], 'change', 'updateUrl']]],
-                    locals: [],
-                    templates: []
-                };
-            })()));
-            var $input = this.$('input');
-
-            expectedUrl = 'http://test.example.com/';
-            run(function () {
-                $input.val(expectedUrl).trigger('input').trigger('blur');
-            });
-            chai.expect($input.val()).to.equal(expectedUrl);
-        });
-    });
+    exports['default'] = startApp;
 
 });
 define('ghost/tests/test-helper', ['ghost/tests/helpers/resolver', 'ember-mocha'], function (resolver, ember_mocha) {
@@ -27538,12 +27285,103 @@ define('ghost/tests/unit/components/gh-infinite-scroll-test', ['chai', 'ember-mo
     });
 
 });
+define('ghost/tests/unit/components/gh-navigation-test', ['chai', 'ember-mocha'], function (chai, ember_mocha) {
+
+    'use strict';
+
+    /* jshint expr:true */
+    ember_mocha.describeComponent('gh-navigation', 'GhNavigationComponent', {
+        // specify the other units that are required for this test
+        // needs: ['component:foo', 'helper:bar']
+    }, function () {
+        ember_mocha.it('renders', function () {
+            // creates the component instance
+            var component = this.subject();
+
+            chai.expect(component._state).to.equal('preRender');
+
+            // renders the component on the page
+            this.render();
+            chai.expect(component._state).to.equal('inDOM');
+        });
+    });
+
+});
 define('ghost/tests/unit/components/gh-navitem-url-input-test', ['ember', 'chai', 'ember-mocha'], function (Ember, chai, ember_mocha) {
 
     'use strict';
 
     /* jshint expr:true */
     ember_mocha.describeComponent('gh-navitem-url-input', 'GhNavitemUrlInputComponent', {}, function () {
+        ember_mocha.it('renders', function () {
+            var component = this.subject();
+
+            chai.expect(component._state).to.equal('preRender');
+
+            this.render();
+
+            chai.expect(component._state).to.equal('inDOM');
+        });
+
+        ember_mocha.it('renders correctly with a URL that matches the base URL', function () {
+            var component = this.subject({
+                baseUrl: 'http://example.com/'
+            });
+
+            Ember['default'].run(function () {
+                component.set('value', 'http://example.com/');
+            });
+
+            this.render();
+
+            chai.expect(this.$().val()).to.equal('http://example.com/');
+        });
+
+        ember_mocha.it('renders correctly with a relative URL', function () {
+            var component = this.subject({
+                baseUrl: 'http://example.com/'
+            });
+
+            Ember['default'].run(function () {
+                component.set('value', '/go/docs');
+            });
+
+            this.render();
+
+            chai.expect(this.$().val()).to.equal('/go/docs');
+        });
+
+        ember_mocha.it('renders correctly with a mailto URL', function () {
+            var component = this.subject({
+                baseUrl: 'http://example.com/'
+            });
+
+            Ember['default'].run(function () {
+                component.set('value', 'mailto:someone@example.com');
+            });
+
+            this.render();
+
+            chai.expect(this.$().val()).to.equal('mailto:someone@example.com');
+        });
+
+        ember_mocha.it('identifies a URL as relative', function () {
+            var component = this.subject({
+                baseUrl: 'http://example.com/',
+                url: '/go/docs'
+            });
+
+            this.render();
+
+            chai.expect(component.get('isRelative')).to.be.ok;
+
+            Ember['default'].run(function () {
+                component.set('value', 'http://example.com/go/docs');
+            });
+
+            chai.expect(component.get('isRelative')).to.not.be.ok;
+        });
+
         ember_mocha.it('identifies a URL as the base URL', function () {
             var component = this.subject({
                 baseUrl: 'http://example.com/'
@@ -27937,7 +27775,7 @@ define('ghost/tests/unit/controllers/post-settings-menu_test', ['ember', 'ember-
     'use strict';
 
     ember_mocha.describeModule('controller:post-settings-menu', {
-        needs: ['controller:application', 'service:notifications']
+        needs: ['controller:application']
     }, function () {
         ember_mocha.it('slugValue is one-way bound to model.slug', function () {
             var controller = this.subject({
@@ -28646,9 +28484,7 @@ define('ghost/tests/unit/controllers/settings-general_test', ['ember', 'ember-mo
 
     'use strict';
 
-    ember_mocha.describeModule('controller:settings/general', {
-        needs: ['service:notifications']
-    }, function () {
+    ember_mocha.describeModule('controller:settings/general', function () {
         ember_mocha.it('isDatedPermalinks should be correct', function () {
             var controller = this.subject({
                 model: Ember['default'].Object.create({
@@ -28723,192 +28559,6 @@ define('ghost/tests/unit/controllers/settings-general_test', ['ember', 'ember-mo
             expect(themes.objectAt(1).name).to.equal('rasper');
             expect(themes.objectAt(1).active).to.not.be.ok;
             expect(themes.objectAt(1).label).to.equal('Rasper - 1.0.0');
-        });
-    });
-
-});
-define('ghost/tests/unit/controllers/settings/navigation-test', ['chai', 'ember-mocha', 'ember', 'ghost/controllers/settings/navigation'], function (chai, ember_mocha, Ember, navigation) {
-
-    'use strict';
-
-    /* jshint expr:true */
-    var run = Ember['default'].run;
-
-    var navSettingJSON = '[\n    {"label":"Home","url":"/"},\n    {"label":"JS Test","url":"javascript:alert(\'hello\');"},\n    {"label":"About","url":"/about"},\n    {"label":"Sub Folder","url":"/blah/blah"},\n    {"label":"Telephone","url":"tel:01234-567890"},\n    {"label":"Mailto","url":"mailto:test@example.com"},\n    {"label":"External","url":"https://example.com/testing?query=test#anchor"},\n    {"label":"No Protocol","url":"//example.com"}\n]';
-
-    ember_mocha.describeModule('controller:settings/navigation', 'Unit : Controller : settings/navigation', {
-        // Specify the other units that are required for this test.
-        needs: ['service:config', 'service:notifications']
-    }, function () {
-        ember_mocha.it('blogUrl: captures config and ensures trailing slash', function () {
-            var ctrl = this.subject();
-            ctrl.set('config.blogUrl', 'http://localhost:2368/blog');
-            chai.expect(ctrl.get('blogUrl')).to.equal('http://localhost:2368/blog/');
-        });
-
-        ember_mocha.it('navigationItems: generates list of NavItems', function () {
-            var ctrl = this.subject(),
-                lastItem;
-
-            run(function () {
-                ctrl.set('model', Ember['default'].Object.create({ navigation: navSettingJSON }));
-                chai.expect(ctrl.get('navigationItems.length')).to.equal(9);
-                chai.expect(ctrl.get('navigationItems.firstObject.label')).to.equal('Home');
-                chai.expect(ctrl.get('navigationItems.firstObject.url')).to.equal('/');
-                chai.expect(ctrl.get('navigationItems.firstObject.last')).to.be['false'];
-
-                // adds a blank item as last one is complete
-                lastItem = ctrl.get('navigationItems.lastObject');
-                chai.expect(lastItem.get('label')).to.equal('');
-                chai.expect(lastItem.get('url')).to.equal('');
-                chai.expect(lastItem.get('last')).to.be['true'];
-            });
-        });
-
-        ember_mocha.it('navigationItems: adds blank item if navigation setting is empty', function () {
-            var ctrl = this.subject(),
-                lastItem;
-
-            run(function () {
-                ctrl.set('model', Ember['default'].Object.create({ navigation: null }));
-                chai.expect(ctrl.get('navigationItems.length')).to.equal(1);
-
-                lastItem = ctrl.get('navigationItems.lastObject');
-                chai.expect(lastItem.get('label')).to.equal('');
-                chai.expect(lastItem.get('url')).to.equal('');
-            });
-        });
-
-        ember_mocha.it('updateLastNavItem: correctly sets "last" properties', function () {
-            var ctrl = this.subject(),
-                item1,
-                item2;
-
-            run(function () {
-                ctrl.set('model', Ember['default'].Object.create({ navigation: navSettingJSON }));
-
-                item1 = ctrl.get('navigationItems.lastObject');
-                chai.expect(item1.get('last')).to.be['true'];
-
-                ctrl.get('navigationItems').addObject(Ember['default'].Object.create({ label: 'Test', url: '/test' }));
-
-                item2 = ctrl.get('navigationItems.lastObject');
-                chai.expect(item2.get('last')).to.be['true'];
-                chai.expect(item1.get('last')).to.be['false'];
-            });
-        });
-
-        ember_mocha.it('save: validates nav items', function (done) {
-            var ctrl = this.subject();
-
-            run(function () {
-                ctrl.set('model', Ember['default'].Object.create({ navigation: '[\n                    {"label":"First",   "url":"/"},\n                    {"label":"",        "url":"/second"},\n                    {"label":"Third",   "url":""}\n                ]' }));
-                // blank item won't get added because the last item is incomplete
-                chai.expect(ctrl.get('navigationItems.length')).to.equal(3);
-
-                ctrl.save().then(function passedValidation() {
-                    chai.assert(false, 'navigationItems weren\'t validated on save');
-                    done();
-                })['catch'](function failedValidation() {
-                    var navItems = ctrl.get('navigationItems');
-                    chai.expect(navItems[0].get('errors')).to.be.empty;
-                    chai.expect(navItems[1].get('errors.firstObject.attribute')).to.equal('label');
-                    chai.expect(navItems[2].get('errors.firstObject.attribute')).to.equal('url');
-                    done();
-                });
-            });
-        });
-
-        ember_mocha.it('save: generates new navigation JSON', function (done) {
-            var ctrl = this.subject(),
-                model = Ember['default'].Object.create({ navigation: {} }),
-                expectedJSON = '[{"label":"New","url":"/new"}]';
-
-            model.save = function () {
-                var self = this;
-                return new Ember['default'].RSVP.Promise(function (resolve, reject) {
-                    return resolve(self);
-                });
-            };
-
-            run(function () {
-                ctrl.set('model', model);
-
-                // remove inserted blank item so validation works
-                ctrl.get('navigationItems').removeObject(ctrl.get('navigationItems.firstObject'));
-                // add new object
-                ctrl.get('navigationItems').addObject(navigation.NavItem.create({ label: 'New', url: '/new' }));
-
-                ctrl.save().then(function success() {
-                    chai.expect(ctrl.get('model.navigation')).to.equal(expectedJSON);
-                    done();
-                }, function failure() {
-                    chai.assert(false, 'save failed with valid data');
-                    done();
-                });
-            });
-        });
-
-        ember_mocha.it('action - addItem: adds item to navigationItems', function () {
-            var ctrl = this.subject();
-
-            run(function () {
-                ctrl.set('navigationItems', [navigation.NavItem.create({ label: 'First', url: '/first', last: true })]);
-                chai.expect(ctrl.get('navigationItems.length')).to.equal(1);
-                ctrl.send('addItem');
-                chai.expect(ctrl.get('navigationItems.length')).to.equal(2);
-                chai.expect(ctrl.get('navigationItems.firstObject.last')).to.be['false'];
-                chai.expect(ctrl.get('navigationItems.lastObject.label')).to.equal('');
-                chai.expect(ctrl.get('navigationItems.lastObject.url')).to.equal('');
-                chai.expect(ctrl.get('navigationItems.lastObject.last')).to.be['true'];
-            });
-        });
-
-        ember_mocha.it('action - addItem: doesn\'t insert new item if last object is incomplete', function () {
-            var ctrl = this.subject();
-
-            run(function () {
-                ctrl.set('navigationItems', [navigation.NavItem.create({ label: '', url: '', last: true })]);
-                chai.expect(ctrl.get('navigationItems.length')).to.equal(1);
-                ctrl.send('addItem');
-                chai.expect(ctrl.get('navigationItems.length')).to.equal(1);
-            });
-        });
-
-        ember_mocha.it('action - deleteItem: removes item from navigationItems', function () {
-            var ctrl = this.subject(),
-                navItems = [navigation.NavItem.create({ label: 'First', url: '/first' }), navigation.NavItem.create({ label: 'Second', url: '/second', last: true })];
-
-            run(function () {
-                ctrl.set('navigationItems', navItems);
-                chai.expect(ctrl.get('navigationItems').mapBy('label')).to.deep.equal(['First', 'Second']);
-                ctrl.send('deleteItem', ctrl.get('navigationItems.firstObject'));
-                chai.expect(ctrl.get('navigationItems').mapBy('label')).to.deep.equal(['Second']);
-            });
-        });
-
-        ember_mocha.it('action - moveItem: updates navigationItems list', function () {
-            var ctrl = this.subject(),
-                navItems = [navigation.NavItem.create({ label: 'First', url: '/first' }), navigation.NavItem.create({ label: 'Second', url: '/second', last: true })];
-
-            run(function () {
-                ctrl.set('navigationItems', navItems);
-                chai.expect(ctrl.get('navigationItems').mapBy('label')).to.deep.equal(['First', 'Second']);
-                ctrl.send('moveItem', 1, 0);
-                chai.expect(ctrl.get('navigationItems').mapBy('label')).to.deep.equal(['Second', 'First']);
-            });
-        });
-
-        ember_mocha.it('action - updateUrl: updates URL on navigationItem', function () {
-            var ctrl = this.subject(),
-                navItems = [navigation.NavItem.create({ label: 'First', url: '/first' }), navigation.NavItem.create({ label: 'Second', url: '/second', last: true })];
-
-            run(function () {
-                ctrl.set('navigationItems', navItems);
-                chai.expect(ctrl.get('navigationItems').mapBy('url')).to.deep.equal(['/first', '/second']);
-                ctrl.send('updateUrl', '/new', ctrl.get('navigationItems.firstObject'));
-                chai.expect(ctrl.get('navigationItems').mapBy('url')).to.deep.equal(['/new', '/second']);
-            });
         });
     });
 
@@ -29325,31 +28975,6 @@ define('ghost/tests/unit/models/user_test', ['ember', 'ember-mocha'], function (
     });
 
 });
-define('ghost/tests/unit/services/config-test', ['chai', 'ember-mocha', 'ember'], function (chai, ember_mocha, Ember) {
-
-    'use strict';
-
-    /* jshint expr:true */
-    ember_mocha.describeModule('service:config', 'ConfigService', {
-        // Specify the other units that are required for this test.
-        // needs: ['service:foo']
-    }, function () {
-        // Replace this with your real tests.
-        ember_mocha.it('exists', function () {
-            var service = this.subject();
-            chai.expect(service).to.be.ok;
-        });
-
-        ember_mocha.it('correctly parses a client secret', function () {
-            Ember['default'].$('<meta>').attr('name', 'env-clientSecret').attr('content', '23e435234423').appendTo('head');
-
-            var service = this.subject();
-
-            chai.expect(service.get('clientSecret')).to.equal('23e435234423');
-        });
-    });
-
-});
 define('ghost/tests/unit/services/notifications-test', ['ember', 'sinon', 'chai', 'ember-mocha'], function (Ember, sinon, chai, ember_mocha) {
 
     'use strict';
@@ -29661,110 +29286,13 @@ define('ghost/tests/unit/utils/ghost-paths_test', ['ghost/utils/ghost-paths'], f
     });
 
 });
-define('ghost/tests/unit/validators/nav-item-test', ['chai', 'mocha', 'ghost/validators/nav-item', 'ghost/controllers/settings/navigation'], function (chai, mocha, validator, navigation) {
-
-    'use strict';
-
-    /* jshint expr:true */
-    var testInvalidUrl, testValidUrl;
-
-    testInvalidUrl = function (url) {
-        var navItem = navigation.NavItem.create({ url: url });
-
-        validator['default'].check(navItem, 'url');
-
-        chai.expect(validator['default'].get('passed'), '"' + url + '" passed').to.be['false'];
-        chai.expect(navItem.get('errors').errorsFor('url')).to.deep.equal([{
-            attribute: 'url',
-            message: 'You must specify a valid URL or relative path'
-        }]);
-        chai.expect(navItem.get('hasValidated')).to.include('url');
-    };
-
-    testValidUrl = function (url) {
-        var navItem = navigation.NavItem.create({ url: url });
-
-        validator['default'].check(navItem, 'url');
-
-        chai.expect(validator['default'].get('passed'), '"' + url + '" failed').to.be['true'];
-        chai.expect(navItem.get('hasValidated')).to.include('url');
-    };
-
-    mocha.describe('Unit : Validator : nav-item', function () {
-        mocha.it('requires label presence', function () {
-            var navItem = navigation.NavItem.create();
-
-            validator['default'].check(navItem, 'label');
-
-            chai.expect(validator['default'].get('passed')).to.be['false'];
-            chai.expect(navItem.get('errors').errorsFor('label')).to.deep.equal([{
-                attribute: 'label',
-                message: 'You must specify a label'
-            }]);
-            chai.expect(navItem.get('hasValidated')).to.include('label');
-        });
-
-        mocha.it('doesn\'t validate label if empty and last', function () {
-            var navItem = navigation.NavItem.create({ last: true });
-
-            validator['default'].check(navItem, 'label');
-
-            chai.expect(validator['default'].get('passed')).to.be['true'];
-        });
-
-        mocha.it('requires url presence', function () {
-            var navItem = navigation.NavItem.create();
-
-            validator['default'].check(navItem, 'url');
-
-            chai.expect(validator['default'].get('passed')).to.be['false'];
-            chai.expect(navItem.get('errors').errorsFor('url')).to.deep.equal([{
-                attribute: 'url',
-                message: 'You must specify a URL or relative path'
-            }]);
-            chai.expect(navItem.get('hasValidated')).to.include('url');
-        });
-
-        mocha.it('fails on invalid url values', function () {
-            var invalidUrls = ['test@example.com', '/has spaces', 'no-leading-slash', 'http://example.com/with spaces'];
-
-            invalidUrls.forEach(function (url) {
-                testInvalidUrl(url);
-            });
-        });
-
-        mocha.it('passes on valid url values', function () {
-            var validUrls = ['http://localhost:2368', 'http://localhost:2368/some-path', 'https://localhost:2368/some-path', '//localhost:2368/some-path', 'http://localhost:2368/#test', 'http://localhost:2368/?query=test&another=example', 'http://localhost:2368/?query=test&another=example#test', 'tel:01234-567890', 'mailto:test@example.com', 'http://some:user@example.com:1234', '/relative/path'];
-
-            validUrls.forEach(function (url) {
-                testValidUrl(url);
-            });
-        });
-
-        mocha.it('doesn\'t validate url if empty and last', function () {
-            var navItem = navigation.NavItem.create({ last: true });
-
-            validator['default'].check(navItem, 'url');
-
-            chai.expect(validator['default'].get('passed')).to.be['true'];
-        });
-
-        mocha.it('validates url and label by default', function () {
-            var navItem = navigation.NavItem.create();
-
-            validator['default'].check(navItem);
-
-            chai.expect(navItem.get('errors').errorsFor('label')).to.not.be.empty;
-            chai.expect(navItem.get('errors').errorsFor('url')).to.not.be.empty;
-            chai.expect(validator['default'].get('passed')).to.be['false'];
-        });
-    });
-
-});
 define('ghost/transforms/moment-date', ['exports', 'ember-data'], function (exports, DS) {
 
     'use strict';
 
+    moment.locale("zh-cn");
+
+    /* global moment */
     var MomentDate = DS['default'].Transform.extend({
         deserialize: function deserialize(serialized) {
             if (serialized) {
@@ -29929,7 +29457,7 @@ define('ghost/utils/date-formatting', ['exports'], function (exports) {
 
     parseDateFormats = ['DD MMM YY @ HH:mm', 'DD MMM YY HH:mm', 'D MMM YY @ HH:mm', 'D MMM YY HH:mm', 'DD MMM YYYY @ HH:mm', 'DD MMM YYYY HH:mm', 'D MMM YYYY @ HH:mm', 'D MMM YYYY HH:mm', 'DD/MM/YY @ HH:mm', 'DD/MM/YY HH:mm', 'DD/MM/YYYY @ HH:mm', 'DD/MM/YYYY HH:mm', 'DD-MM-YY @ HH:mm', 'DD-MM-YY HH:mm', 'DD-MM-YYYY @ HH:mm', 'DD-MM-YYYY HH:mm', 'YYYY-MM-DD @ HH:mm', 'YYYY-MM-DD HH:mm', 'DD MMM @ HH:mm', 'DD MMM HH:mm', 'D MMM @ HH:mm', 'D MMM HH:mm'];
 
-    displayDateFormat = 'DD MMM YY @ HH:mm';
+    displayDateFormat = 'YYYY-MM-DD @ HH:mm';
 
     // Add missing timestamps
     verifyTimeStamp = function (dateString) {
@@ -30352,7 +29880,7 @@ define('ghost/utils/word-count', ['exports'], function (exports) {
         s = s.replace(/\n+/gi, ' ');
         s = s.replace(/[ ]{2,}/gi, ' '); // convert 2 or more spaces to 1
 
-        return s.split(' ').length;
+        return s.length;
     }
 
     exports['default'] = wordCount;
@@ -30398,64 +29926,26 @@ define('ghost/validators/base', ['exports', 'ember'], function (exports, Ember) 
     exports['default'] = BaseValidator;
 
 });
-define('ghost/validators/nav-item', ['exports', 'ghost/validators/base'], function (exports, BaseValidator) {
+define('ghost/validators/forgotten', ['exports', 'ember'], function (exports, Ember) {
 
     'use strict';
 
-    exports['default'] = BaseValidator['default'].create({
-        properties: ['label', 'url'],
+    var ForgotValidator = Ember['default'].Object.create({
+        check: function check(model) {
+            var data = model.getProperties('email'),
+                validationErrors = [];
 
-        label: function label(model) {
-            var label = model.get('label'),
-                hasValidated = model.get('hasValidated');
-
-            if (this.canBeIgnored(model)) {
-                return;
+            if (!validator.isEmail(data.email)) {
+                validationErrors.push({
+                    message: '邮箱地址无效'
+                });
             }
 
-            if (validator.empty(label)) {
-                model.get('errors').add('label', 'You must specify a label');
-                this.invalidate();
-            }
-
-            hasValidated.addObject('label');
-        },
-
-        url: function url(model) {
-            var url = model.get('url'),
-                hasValidated = model.get('hasValidated'),
-                validatorOptions = { require_protocol: true },
-                urlRegex = new RegExp(/^(\/|#|[a-zA-Z0-9\-]+:)/);
-
-            if (this.canBeIgnored(model)) {
-                return;
-            }
-
-            if (validator.empty(url)) {
-                model.get('errors').add('url', 'You must specify a URL or relative path');
-                this.invalidate();
-            } else if (url.match(/\s/) || !validator.isURL(url, validatorOptions) && !url.match(urlRegex)) {
-                model.get('errors').add('url', 'You must specify a valid URL or relative path');
-                this.invalidate();
-            }
-
-            hasValidated.addObject('url');
-        },
-
-        canBeIgnored: function canBeIgnored(model) {
-            var label = model.get('label'),
-                url = model.get('url'),
-                isLast = model.get('last');
-
-            // if nav item is last and completely blank, mark it valid and skip
-            if (isLast && (validator.empty(url) || url === '/') && validator.empty(label)) {
-                model.get('errors').clear();
-                return true;
-            }
-
-            return false;
+            return validationErrors;
         }
     });
+
+    exports['default'] = ForgotValidator;
 
 });
 define('ghost/validators/new-user', ['exports', 'ghost/validators/base'], function (exports, BaseValidator) {
@@ -30469,7 +29959,7 @@ define('ghost/validators/new-user', ['exports', 'ghost/validators/base'], functi
             var name = model.get('name');
 
             if (!validator.isLength(name, 1)) {
-                model.get('errors').add('name', 'Please enter a name.');
+                model.get('errors').add('name', '请输入姓名。');
                 this.invalidate();
             }
         },
@@ -30477,10 +29967,10 @@ define('ghost/validators/new-user', ['exports', 'ghost/validators/base'], functi
             var email = model.get('email');
 
             if (validator.empty(email)) {
-                model.get('errors').add('email', 'Please enter an email.');
+                model.get('errors').add('email', '请输入邮箱地址。');
                 this.invalidate();
             } else if (!validator.isEmail(email)) {
-                model.get('errors').add('email', 'Invalid Email.');
+                model.get('errors').add('email', '邮箱地址无效。');
                 this.invalidate();
             }
         },
@@ -30488,7 +29978,7 @@ define('ghost/validators/new-user', ['exports', 'ghost/validators/base'], functi
             var password = model.get('password');
 
             if (!validator.isLength(password, 8)) {
-                model.get('errors').add('password', 'Password must be at least 8 characters long');
+                model.get('errors').add('password', '密码至少 8 个字符。');
                 this.invalidate();
             }
         }
@@ -30508,7 +29998,7 @@ define('ghost/validators/post', ['exports', 'ghost/validators/base'], function (
             var title = model.get('title');
 
             if (validator.empty(title)) {
-                model.get('errors').add('title', 'You must specify a title for the post.');
+                model.get('errors').add('title', '必须为博文设置一个标题。');
                 this.invalidate();
             }
 
@@ -30522,7 +30012,7 @@ define('ghost/validators/post', ['exports', 'ghost/validators/base'], function (
             var metaTitle = model.get('meta_title');
 
             if (!validator.isLength(metaTitle, 0, 150)) {
-                model.get('errors').add('meta_title', 'Meta Title cannot be longer than 150 characters.');
+                model.get('errors').add('meta_title', '优化标题不能超过 150 个字符。');
                 this.invalidate();
             }
         },
@@ -30531,7 +30021,7 @@ define('ghost/validators/post', ['exports', 'ghost/validators/base'], function (
             var metaDescription = model.get('meta_description');
 
             if (!validator.isLength(metaDescription, 0, 200)) {
-                model.get('errors').add('meta_description', 'Meta Description cannot be longer than 200 characters.');
+                model.get('errors').add('meta_description', '优化描述不能超过 200 个字符。');
                 this.invalidate();
             }
         }
@@ -30551,13 +30041,13 @@ define('ghost/validators/reset', ['exports', 'ghost/validators/base'], function 
                 p2 = model.get('ne2Password');
 
             if (validator.empty(p1)) {
-                model.get('errors').add('newPassword', 'Please enter a password.');
+                model.get('errors').add('newPassword', '请输入一个新密码');
                 this.invalidate();
             } else if (!validator.isLength(p1, 8)) {
-                model.get('errors').add('newPassword', 'The password is not long enough.');
+                model.get('errors').add('newPassword', '新密码太短');
                 this.invalidate();
             } else if (!validator.equals(p1, p2)) {
-                model.get('errors').add('ne2Password', 'The two new passwords don\'t match.');
+                model.get('errors').add('ne2Password', '两次输入的新密码不一致');
                 this.invalidate();
             }
         }
@@ -30576,7 +30066,7 @@ define('ghost/validators/setting', ['exports', 'ghost/validators/base'], functio
             var title = model.get('title');
 
             if (!validator.isLength(title, 0, 150)) {
-                model.get('errors').add('title', 'Title is too long');
+                model.get('errors').add('title', '标题太长');
                 this.invalidate();
             }
         },
@@ -30584,7 +30074,7 @@ define('ghost/validators/setting', ['exports', 'ghost/validators/base'], functio
             var desc = model.get('description');
 
             if (!validator.isLength(desc, 0, 200)) {
-                model.get('errors').add('description', 'Description is too long');
+                model.get('errors').add('description', '描述太长');
                 this.invalidate();
             }
         },
@@ -30593,7 +30083,7 @@ define('ghost/validators/setting', ['exports', 'ghost/validators/base'], functio
                 password = model.get('password');
 
             if (isPrivate && password === '') {
-                model.get('errors').add('password', 'Password must be supplied');
+                model.get('errors').add('password', '必须填写密码');
                 this.invalidate();
             }
         },
@@ -30601,13 +30091,13 @@ define('ghost/validators/setting', ['exports', 'ghost/validators/base'], functio
             var postsPerPage = model.get('postsPerPage');
 
             if (!validator.isInt(postsPerPage)) {
-                model.get('errors').add('postsPerPage', 'Posts per page must be a number');
+                model.get('errors').add('postsPerPage', '请为每页展示的博文数量输入一个数字');
                 this.invalidate();
             } else if (postsPerPage > 1000) {
-                model.get('errors').add('postsPerPage', 'The maximum number of posts per page is 1000');
+                model.get('errors').add('postsPerPage', '每页展示的博文数量最多是 1000');
                 this.invalidate();
             } else if (postsPerPage < 1) {
-                model.get('errors').add('postsPerPage', 'The minimum number of posts per page is 1');
+                model.get('errors').add('postsPerPage', '每页展示的博文数量最少是 1');
                 this.invalidate();
             }
         }
@@ -30627,7 +30117,7 @@ define('ghost/validators/setup', ['exports', 'ghost/validators/new-user'], funct
             var blogTitle = model.get('blogTitle');
 
             if (!validator.isLength(blogTitle, 1)) {
-                model.get('errors').add('blogTitle', 'Please enter a blog title.');
+                model.get('errors').add('blogTitle', '请输入博客名称。');
                 this.invalidate();
             }
         }
@@ -30642,7 +30132,7 @@ define('ghost/validators/signin', ['exports', 'ghost/validators/base'], function
 
     var SigninValidator = BaseValidator['default'].create({
         properties: ['identification', 'signin', 'forgotPassword'],
-        invalidMessage: 'Email address is not valid',
+        invalidMessage: '邮箱地址无效',
 
         identification: function identification(model) {
             var id = model.get('identification');
@@ -30660,7 +30150,7 @@ define('ghost/validators/signin', ['exports', 'ghost/validators/base'], function
             model.get('errors').clear();
 
             if (validator.empty(id)) {
-                model.get('errors').add('identification', 'Please enter an email');
+                model.get('errors').add('identification', '请输入邮箱地址');
                 this.invalidate();
             }
 
@@ -30670,7 +30160,7 @@ define('ghost/validators/signin', ['exports', 'ghost/validators/base'], function
             }
 
             if (validator.empty(password)) {
-                model.get('errors').add('password', 'Please enter a password');
+                model.get('errors').add('password', '请输入密码');
                 this.invalidate();
             }
         },
@@ -30707,7 +30197,7 @@ define('ghost/validators/tag-settings', ['exports', 'ghost/validators/base'], fu
             var name = model.get('name');
 
             if (validator.empty(name)) {
-                model.get('errors').add('name', 'You must specify a name for the tag.');
+                model.get('errors').add('name', '必须为标签设置一个名称');
                 this.invalidate();
             } else if (name.match(/^,/)) {
                 model.get('errors').add('name', 'Tag names can\'t start with commas.');
@@ -30721,7 +30211,7 @@ define('ghost/validators/tag-settings', ['exports', 'ghost/validators/base'], fu
             var metaTitle = model.get('meta_title');
 
             if (!validator.isLength(metaTitle, 0, 150)) {
-                model.get('errors').add('meta_title', 'Meta Title cannot be longer than 150 characters.');
+                model.get('errors').add('meta_title', '优化标题不能超过 150 个字符。');
                 this.invalidate();
             }
         },
@@ -30729,7 +30219,7 @@ define('ghost/validators/tag-settings', ['exports', 'ghost/validators/base'], fu
             var metaDescription = model.get('meta_description');
 
             if (!validator.isLength(metaDescription, 0, 200)) {
-                model.get('errors').add('meta_description', 'Meta Description cannot be longer than 200 characters.');
+                model.get('errors').add('meta_description', '优化描述不能超过 200 个字符。');
                 this.invalidate();
             }
         }
@@ -30752,10 +30242,10 @@ define('ghost/validators/user', ['exports', 'ghost/validators/base', 'ember'], f
 
             if (this.isActive(model)) {
                 if (validator.empty(name)) {
-                    model.get('errors').add('name', 'Please enter a name.');
+                    model.get('errors').add('name', '请输入姓名');
                     this.invalidate();
                 } else if (!validator.isLength(name, 0, 150)) {
-                    model.get('errors').add('name', 'Name is too long');
+                    model.get('errors').add('name', '姓名太长');
                     this.invalidate();
                 }
             }
@@ -30765,7 +30255,7 @@ define('ghost/validators/user', ['exports', 'ghost/validators/base', 'ember'], f
 
             if (this.isActive(model)) {
                 if (!validator.isLength(bio, 0, 200)) {
-                    model.get('errors').add('bio', 'Bio is too long');
+                    model.get('errors').add('bio', '个人简介太长');
                     this.invalidate();
                 }
             }
@@ -30774,7 +30264,7 @@ define('ghost/validators/user', ['exports', 'ghost/validators/base', 'ember'], f
             var email = model.get('email');
 
             if (!validator.isEmail(email)) {
-                model.get('errors').add('email', 'Please supply a valid email address');
+                model.get('errors').add('email', '请输入有效的邮箱地址');
                 this.invalidate();
             }
         },
@@ -30783,7 +30273,7 @@ define('ghost/validators/user', ['exports', 'ghost/validators/base', 'ember'], f
 
             if (this.isActive(model)) {
                 if (!validator.isLength(location, 0, 150)) {
-                    model.get('errors').add('location', 'Location is too long');
+                    model.get('errors').add('location', '所在地太长');
                     this.invalidate();
                 }
             }
@@ -30793,7 +30283,7 @@ define('ghost/validators/user', ['exports', 'ghost/validators/base', 'ember'], f
 
             if (this.isActive(model)) {
                 if (!Ember['default'].isEmpty(website) && (!validator.isURL(website, { require_protocol: false }) || !validator.isLength(website, 0, 2000))) {
-                    model.get('errors').add('website', 'Website is not a valid url');
+                    model.get('errors').add('website', '个人网站不是有效的网址');
                     this.invalidate();
                 }
             }
@@ -30803,7 +30293,7 @@ define('ghost/validators/user', ['exports', 'ghost/validators/base', 'ember'], f
                 var roles = model.get('roles');
 
                 if (roles.length < 1) {
-                    model.get('errors').add('role', 'Please select a role');
+                    model.get('errors').add('role', '请选择角色/权限');
                     this.invalidate();
                 }
             }
@@ -30841,7 +30331,7 @@ catch(err) {
 if (runningTests) {
   require("ghost/tests/test-helper");
 } else {
-  require("ghost/app")["default"].create({"LOG_ACTIVE_GENERATION":true,"LOG_TRANSITIONS":true,"LOG_TRANSITIONS_INTERNAL":true,"LOG_VIEW_LOOKUPS":true,"name":"ghost","version":"0.7.1"});
+  require("ghost/app")["default"].create({"LOG_ACTIVE_GENERATION":true,"LOG_TRANSITIONS":true,"LOG_TRANSITIONS_INTERNAL":true,"LOG_VIEW_LOOKUPS":true,"name":"ghost","version":"0.0.0.25a0802a"});
 }
 
 /* jshint ignore:end */

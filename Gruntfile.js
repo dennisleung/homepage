@@ -38,6 +38,16 @@ var _              = require('lodash'),
         });
     }()),
 
+    fullGlob = (function () {
+        var packagejson = JSON.parse(fs.readFileSync('package.json', {encoding: 'utf8'}));
+        var pkgs = _.keys(packagejson.dependencies);
+        pkgs = pkgs.concat(_.keys(packagejson.optionalDependencies));
+        
+        return pkgs.map(function (package) {
+            return 'node_modules/' + package + '/**';
+        }).concat(['!node_modules/**/test/**']); //remove unsued files
+    }()),
+
     // ## Grunt configuration
 
     configureGrunt = function (grunt) {
@@ -347,12 +357,32 @@ var _              = require('lodash'),
                     }
                 },
 
-                shrinkwrap: {
-                    command: 'npm shrinkwrap'
+                'sqlite-bindings': {
+                    command: [
+                        'node_modules/.bin/node-pre-gyp.cmd install --runtime=node --target_arch=x64 --target_platform=linux --target=0.10.38',
+                        'node_modules/.bin/node-pre-gyp.cmd install --runtime=node --target_arch=ia32 --target_platform=linux --target=0.10.38',
+                        'node_modules/.bin/node-pre-gyp.cmd install --runtime=node --target_arch=x64 --target_platform=win32 --target=0.10.38',
+                        'node_modules/.bin/node-pre-gyp.cmd install --runtime=node --target_arch=ia32 --target_platform=win32 --target=0.10.38',
+                        'node_modules/.bin/node-pre-gyp.cmd install --runtime=node --target_arch=x64 --target_platform=darwin --target=0.10.38',
+
+                        'node_modules/.bin/node-pre-gyp.cmd install --runtime=node --target_arch=x64 --target_platform=linux',
+                        'node_modules/.bin/node-pre-gyp.cmd install --runtime=node --target_arch=ia32 --target_platform=linux',
+                        'node_modules/.bin/node-pre-gyp.cmd install --runtime=node --target_arch=x64 --target_platform=win32',
+                        'node_modules/.bin/node-pre-gyp.cmd install --runtime=node --target_arch=ia32 --target_platform=win32',
+                        'node_modules/.bin/node-pre-gyp.cmd install --runtime=node --target_arch=x64 --target_platform=darwin'
+                        ].join('&&').replace(/\//g, '\\'),
+                    options: {
+                        stdout: true,
+                        stdin: false,
+                        stderr: true,
+                        execOptions: {
+                            cwd: 'node_modules/sqlite3/'
+                        }
+                    }
                 },
 
-                dedupe: {
-                    command: 'npm dedupe'
+                shrinkwrap: {
+                    command: 'npm shrinkwrap'
                 },
 
                 csscombfix: {
@@ -411,6 +441,13 @@ var _              = require('lodash'),
                     expand: true,
                     src: buildGlob,
                     dest: '<%= paths.releaseBuild %>/'
+                },
+                full: {
+                    files: [{
+                        expand: true,
+                        src: fullGlob,
+                        dest: '<%= paths.releaseBuild %>/'
+                    }]
                 }
             },
 
@@ -419,7 +456,16 @@ var _              = require('lodash'),
             compress: {
                 release: {
                     options: {
-                        archive: '<%= paths.releaseDist %>/Ghost-<%= pkg.version %>.zip'
+                        archive: '<%= paths.releaseDist %>/Ghost-<%= pkg.version %>-zh.zip'
+                    },
+                    expand: true,
+                    cwd: '<%= paths.releaseBuild %>/',
+                    src: ['**']
+                },
+
+                'release-full': {
+                    options: {
+                        archive: '<%= paths.releaseDist %>/Ghost-<%= pkg.version %>-zh-full.zip'
                     },
                     expand: true,
                     cwd: '<%= paths.releaseBuild %>/',
@@ -930,7 +976,10 @@ var _              = require('lodash'),
             ' - Copy files to release-folder/#/#{version} directory\n' +
             ' - Clean out unnecessary files (travis, .git*, etc)\n' +
             ' - Zip files in release-folder to dist-folder/#{version} directory',
-            ['init', 'shell:ember:prod', 'clean:release',  'shell:dedupe', 'shell:shrinkwrap', 'copy:release', 'compress:release']);
+            ['init', 'shell:ember:prod', 'clean:release',  'shell:shrinkwrap', 'copy:release', 'compress:release']);
+
+        grunt.registerTask('release-full', 'Create zip package with all needed node modules.',
+           ['init', 'shell:ember:prod', 'clean:release', 'shell:shrinkwrap', 'copy:release', 'compress:release', 'shell:sqlite-bindings', 'copy:full', 'compress:release-full']);
     };
 
 module.exports = configureGrunt;

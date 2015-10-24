@@ -14,7 +14,6 @@ var _           = require('lodash'),
     Promise     = require('bluebird'),
     template    = require('../helpers/template'),
     routeMatch  = require('path-match')(),
-    safeString  = require('../utils/index').safeString,
 
     frontendControllers,
     staticPostPermalink = routeMatch('/:slug/:edit?');
@@ -161,8 +160,8 @@ function renderChannel(channelOpts) {
             filter, filterKey;
 
         // Add the slug if it exists in the route
-        if (channelOpts.route.indexOf(':slug') !== -1 && req.params.slug) {
-            options[channelOpts.name] = safeString(req.params.slug);
+        if (channelOpts.route.indexOf(':slug') !== -1) {
+            options[channelOpts.name] = req.params.slug;
             hasSlug = true;
         }
 
@@ -312,7 +311,7 @@ frontendControllers = {
             // Sanitize params we're going to use to lookup the post.
             postLookup = _.pick(params, 'slug', 'id');
             // Add author, tag and fields
-            postLookup.include = 'author,tags,fields';
+            postLookup.include = 'author,tags,fields,next,previous';
 
             // Query database to find post
             return api.posts.read(postLookup);
@@ -323,7 +322,7 @@ frontendControllers = {
             if (!post) {
                 return next();
             }
-
+console.log(post);
             function render() {
                 // If we're ready to render the page but the last param is 'edit' then we'll send you to the edit page.
                 if (params.edit) {
