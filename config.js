@@ -14,9 +14,14 @@ config = {
         url: 'http://my-ghost-blog.com',
         mail: {},
         database: {
-            client: 'sqlite3',
+            client: 'postgres',
             connection: {
-                filename: path.join(__dirname, '/content/data/ghost.db')
+                host : 'ec2-107-21-219-109.compute-1.amazonaws.com',
+                user : 'wxedfqalabrejb',
+                password : 'BjjheCGGbfm04xuuUKIo5w3rmb',
+                database : 'dfub880td33s6i',
+                port : '5432'
+
             },
             debug: false
         },
@@ -35,8 +40,8 @@ config = {
         },*/
 
         server: {
-            host: '127.0.0.1',
-            port: '2368'
+            host: '0.0.0.0',
+            port: process.env.PORT
         },
 
         //Storage.Now,we can support `qiniu`,`upyun`, `aliyun oss`, `aliyun ace-storage` and `local-file-store`
